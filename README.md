@@ -71,4 +71,6 @@ src/
 - Juster `NO_NAME`-regexen i `fivem.cjs` hvis du vil fange opp flere (eller færre) servere.
 
 ## Nettside
-Nettsiden ligger i `docs/index.html` (én fil, ingen bygging). Den publiseres med GitHub Pages: **Settings → Pages → Deploy from a branch → `main` / `docs`**.
+Nettsiden ligger i `docs/` (én HTML-fil, ingen bygging) og kjøres på Cloudflare Pages:
+prosjekt koblet til dette repoet, branch `main`, ingen build-kommando, output-mappe `docs`.
+`docs/_headers` setter sikkerhets- og cache-headere.
