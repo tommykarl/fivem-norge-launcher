@@ -16,7 +16,7 @@ En desktop-launcher (Electron + React) for norske FiveM-servere.
 - FiveM-status fra Rockstar Support og egne målinger
 - Mørk/lys modus, fem aksentfarger og hurtigtaster (trykk ?)
 - Automatiske oppdateringer fra GitHub Releases
-- Adminpanel (egen server med JSON-database): brukere, roller, utestengelse, servere, kunngjøringer, statistikk og feilrapporter – se [server/README.md](server/README.md)
+- Nettside og adminpanel på [fivemnorge.xyz](https://fivemnorge.xyz) (Cloudflare Worker, data som JSON): brukere, roller, utestengelse, servere, kunngjøringer, statistikk og feilrapporter – se [web/README.md](web/README.md)
 
 ## Krav
 - [Node.js](https://nodejs.org) 18 eller nyere

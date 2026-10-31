@@ -56,8 +56,8 @@ jobs:
           # med en repository-variabel DISCORD_CLIENT_ID under Settings → Secrets and variables → Actions.
           echo "DISCORD_CLIENT_ID=${{ vars.DISCORD_CLIENT_ID || '833800432866295868' }}" > .env
           echo "UPDATE_REPO=${{ github.repository }}" >> .env
-          # Adressen til egen backend (server/). Settes som repository-variabel BACKEND_URL.
-          echo "BACKEND_URL=${{ vars.BACKEND_URL }}" >> .env
+          # Nettside, adminpanel og API (web/). Kan overstyres med repository-variabel BACKEND_URL.
+          echo "BACKEND_URL=${{ vars.BACKEND_URL || 'https://fivemnorge.xyz' }}" >> .env
 
       - name: Bygg og publiser release
         if: steps.ver.outputs.exists == 'false'

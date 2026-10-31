@@ -1,0 +1,13 @@
+{
+  "name": "fivem-norge-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "secret": "wrangler secret put DISCORD_CLIENT_SECRET"
+  },
+  "devDependencies": {
+    "wrangler": "^4.20.0"
+  }
+}

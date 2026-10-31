@@ -1,0 +1,31 @@
+# FiveM Norge – nettside + adminpanel + API på Cloudflare
+# Publiser:  npm run deploy   (se README.md)
+name = "fivem-norge"
+main = "src/worker.js"
+compatibility_date = "2025-09-01"
+
+# Nettsiden (alt i public/ serveres som vanlige filer)
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# Domenet ditt (må ligge på samme Cloudflare-konto)
+routes = [
+  { pattern = "fivemnorge.xyz", custom_domain = true },
+  { pattern = "www.fivemnorge.xyz", custom_domain = true },
+]
+
+[vars]
+PUBLIC_URL = "https://fivemnorge.xyz"
+DISCORD_CLIENT_ID = "833800432866295868"
+# Discord-ID-ene til eierne, kommaseparert
+ADMIN_DISCORD_IDS = ""
+
+# Databasen: JSON-data i en Durable Object
+[[durable_objects.bindings]]
+name = "STORE"
+class_name = "Store"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Store"]
