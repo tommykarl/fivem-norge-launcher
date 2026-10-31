@@ -1,15 +1,11 @@
 // Henter FiveM sin offentlige serverliste (protobuf-strøm) og filtrerer ut norske servere.
 const protobuf = require('protobufjs');
 
-const STREAM_URLS = [
-  'https://servers-frontend.fivem.net/api/servers/streamRedir/',
-  'https://frontend.cfx-services.net/api/servers/stream/',
-];
-const SINGLE_URLS = [
-  (id) => `https://frontend.cfx-services.net/api/servers/single/${id}`,
-  (id) => `https://servers-frontend.fivem.net/api/servers/single/${id}`,
-];
-const HEADERS = { 'User-Agent': 'FiveMNorgeLauncher/1.0', Accept: '*/*' };
+const { CFX_HEADERS, CFX_API, CFX_API_OLD } = require('./cfxHttp.cjs');
+
+const STREAM_URLS = [`${CFX_API}/streamRedir/`, `${CFX_API_OLD}/streamRedir/`, `${CFX_API}/stream/`];
+const SINGLE_URLS = [(id) => `${CFX_API}/single/${id}`, (id) => `${CFX_API_OLD}/single/${id}`];
+const HEADERS = CFX_HEADERS;
 
 const root = protobuf.Root.fromJSON({
   nested: {
@@ -95,7 +91,9 @@ function mapServer(id, d) {
       .map((t) => t.trim())
       .filter(Boolean)
       .slice(0, 10),
-    icons: [`cfxicon://icon/${id}`], // hentes og caches av electron/icons.cjs
+    iconVersion: d.iconVersion || 0,
+    // iconVersion 0 = serveren har ingen egen logo (da vises bokstavikonet uten å spørre API-et)
+    icons: d.iconVersion ? [`cfxicon://icon/${id}/${d.iconVersion}`] : [], // hentes og caches av electron/icons.cjs
     banner: httpsOnly(vars.banner_detail) || httpsOnly(vars.banner_connecting),
     upvotes: d.upvotePower || 0,
     gamebuild: vars.sv_enforceGameBuild || null,
