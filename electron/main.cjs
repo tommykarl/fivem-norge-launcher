@@ -20,6 +20,7 @@ const features = require('./features.cjs');
 const presence = require('./presence.cjs');
 const communities = require('./communities.cjs');
 const appctl = require('./appctl.cjs');
+const { CFX_HEADERS } = require('./cfxHttp.cjs');
 const status = require('./status.cjs');
 
 // Må registreres før appen er klar
@@ -89,6 +90,16 @@ if (!app.requestSingleInstanceLock()) {
     if (process.platform === 'win32') app.setAppUserModelId('no.fivemnorge.launcher');
     session = store.loadSession();
     icons.registerHandler(fivem.iconVersion);
+    // FiveM sitt API vil ha Origin/Referer fra servers.fivem.net. Legg dem på alle kall
+    // fra appen (blant annet <img> med logoer), så bildene lastes som på FiveM sin nettside.
+    electronSession.defaultSession.webRequest.onBeforeSendHeaders(
+      { urls: ['https://frontend.cfx-services.net/*', 'https://servers-frontend.fivem.net/*'] },
+      (details, cb) => {
+        const h = { ...details.requestHeaders };
+        for (const k of Object.keys(h)) if (/^(origin|referer)$/i.test(k)) delete h[k];
+        cb({ requestHeaders: { ...h, Origin: CFX_HEADERS.Origin, Referer: CFX_HEADERS.Referer } });
+      }
+    );
     features.init({
       fivem,
       isFiveMRunning: fivemCache.isFiveMRunning,
@@ -327,6 +338,16 @@ async function cacheInfo() {
   const http = await electronSession.defaultSession.getCacheSize();
   return { bytes: icons.size() + http };
 }
+ipcMain.handle('debug:icons', async () => {
+  const list = (await fivem.listServers(false).catch(() => fivem.cachedServers())).slice(0, 3);
+  const out = [];
+  for (const s of list) {
+    const raw = fivem.cachedRaw(s.id);
+    const v = raw?.iconVersion || 0;
+    out.push({ id: s.id, name: s.name, iconVersion: v, results: v ? await icons.diagnose(s.id, v) : [] });
+  }
+  return out;
+});
 ipcMain.handle('cache:info', cacheInfo);
 ipcMain.handle('cache:clear', async () => {
   icons.clear();

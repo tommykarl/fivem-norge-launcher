@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  AlertTriangle, Bell, Database, Download, FolderOpen, Info, Keyboard, Loader2, LogOut, Monitor, Palette, RefreshCw, RotateCcw, Server, Trash2,
+  AlertTriangle, Bell, Bug, Database, Download, FolderOpen, Info, Keyboard, Loader2, LogOut, Monitor, Palette, RefreshCw, RotateCcw, Server, Trash2,
 } from 'lucide-react';
 import { ShortcutList } from '../components/ShortcutsModal.jsx';
 import DiscordIcon from '../components/DiscordIcon.jsx';
@@ -68,6 +68,8 @@ export default function SettingsPage({
   const [info, setInfo] = useState(null);
   const [confirm, setConfirm] = useState(null); // 'uninstall' | 'reset'
   const [busy, setBusy] = useState(false);
+  const [iconDiag, setIconDiag] = useState(null);
+  const [diagBusy, setDiagBusy] = useState(false);
 
   useEffect(() => {
     api.app.info().then(setInfo).catch(() => {});
@@ -261,6 +263,52 @@ export default function SettingsPage({
         <Row title="Vis hurtigtaster hvor som helst" desc="Trykk ? (spørsmålstegn) når du ikke skriver i et felt.">
           <button className="btn" onClick={onShowShortcuts}><Keyboard size={16} /> Vis</button>
         </Row>
+      </Section>
+
+      <Section icon={Bug} title="Feilsøking">
+        <Row title="Test serverlogoer" desc="Henter logoen til de tre største serverne på flere måter og viser hva FiveM svarer. Ta gjerne et skjermbilde hvis logoene ikke vises.">
+          <button
+            className="btn"
+            disabled={diagBusy}
+            onClick={async () => {
+              setDiagBusy(true);
+              try {
+                setIconDiag(await api.app.debugIcons());
+              } catch (e) {
+                notify(errText(e));
+              } finally {
+                setDiagBusy(false);
+              }
+            }}
+          >
+            {diagBusy ? <Loader2 size={16} className="spin" /> : <Bug size={16} />} Test logoer
+          </button>
+        </Row>
+        {iconDiag && (
+          <div className="set-row diag">
+            {iconDiag.length === 0 && <div className="muted-sm">Serverlisten er tom – får ikke testet.</div>}
+            {iconDiag.map((d) => (
+              <div key={d.id} className="diag-server">
+                <div className="diag-title">
+                  {d.iconVersion ? (
+                    <img src={`https://frontend.cfx-services.net/api/servers/icon/${d.id}/${d.iconVersion}.png`} alt="" width="32" height="32" />
+                  ) : null}
+                  <strong>{d.name}</strong>
+                  <span className="mono muted-sm">{d.id} · iconVersion {d.iconVersion}</span>
+                </div>
+                {d.iconVersion === 0 && <div className="muted-sm">Serveren oppgir ingen logo (iconVersion 0).</div>}
+                {d.results.map((r, i) => (
+                  <div key={i} className="diag-line mono">
+                    <span className={r.status === 200 ? 'ok' : 'bad'}>{r.status ?? 'feil'}</span>
+                    <span>{r.via}</span>
+                    <span title={r.url}>{r.url.replace('https://', '').replace(/\/api\/servers\/icon.*/, '')}</span>
+                    <span>{r.error || `${r.type || '–'} · ${r.bytes} B`}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
       </Section>
 
       <Section icon={Info} title="Om og avinstallering">

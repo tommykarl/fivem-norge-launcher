@@ -66,6 +66,7 @@ contextBridge.exposeInMainWorld('launcher', {
     installUpdate: () => ipcRenderer.invoke('app:installUpdate'),
     uninstall: () => ipcRenderer.invoke('app:uninstall'),
     openDataDir: () => ipcRenderer.invoke('app:openDataDir'),
+    debugIcons: () => ipcRenderer.invoke('debug:icons'),
     quit: () => ipcRenderer.send('app:quit'),
   },
   data: {

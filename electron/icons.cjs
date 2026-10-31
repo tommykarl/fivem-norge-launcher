@@ -109,4 +109,26 @@ function clear() {
   fs.rmSync(dir(), { recursive: true, force: true });
 }
 
-module.exports = { registerScheme, registerHandler, size, clear };
+// Feilsøking: prøver alle måter å hente logoen på og rapporterer hva API-et svarer
+async function diagnose(id, v) {
+  const out = [];
+  for (const url of candidates(id, v)) {
+    for (const [via, fn] of [
+      ['node', () => fetch(url, { headers: HEADERS, redirect: 'follow' })],
+      ['chromium', () => net.fetch(url, { headers: HEADERS, bypassCustomProtocolHandlers: true })],
+      ['uten headere', () => fetch(url)],
+    ]) {
+      const t0 = Date.now();
+      try {
+        const res = await fn();
+        const buf = Buffer.from(await res.arrayBuffer());
+        out.push({ url, via, status: res.status, type: res.headers.get('content-type') || '', bytes: buf.length, ms: Date.now() - t0 });
+      } catch (e) {
+        out.push({ url, via, status: null, error: e.message, ms: Date.now() - t0 });
+      }
+    }
+  }
+  return out;
+}
+
+module.exports = { registerScheme, registerHandler, size, clear, diagnose };

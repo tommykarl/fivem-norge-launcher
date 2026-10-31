@@ -93,7 +93,15 @@ function mapServer(id, d) {
       .slice(0, 10),
     iconVersion: d.iconVersion || 0,
     // iconVersion 0 = serveren har ingen egen logo (da vises bokstavikonet uten å spørre API-et)
-    icons: d.iconVersion ? [`cfxicon://icon/${id}/${d.iconVersion}`] : [], // hentes og caches av electron/icons.cjs
+    icons: d.iconVersion
+      ? [
+          // Lastes direkte av Chromium (Origin/Referer legges på i main.cjs), som på servers.fivem.net
+          `${CFX_API}/icon/${id}/${d.iconVersion}.png`,
+          `${CFX_API_OLD}/icon/${id}/${d.iconVersion}.png`,
+          // Reserve: hentes av hovedprosessen og caches på disk (electron/icons.cjs)
+          `cfxicon://icon/${id}/${d.iconVersion}`,
+        ]
+      : [],
     banner: httpsOnly(vars.banner_detail) || httpsOnly(vars.banner_connecting),
     upvotes: d.upvotePower || 0,
     gamebuild: vars.sv_enforceGameBuild || null,
@@ -213,4 +221,4 @@ async function getServer(id) {
   return detailsFrom(id, { ...d, svMaxclients: d.sv_maxclients ?? d.svMaxclients });
 }
 
-module.exports = { listServers, getServer, fetchSingle, onList, cachedServers, iconVersion, clearCache, decodeStream, isNorwegian, mapServer, ServerMsg };
+module.exports = { cachedRaw: (id) => cache.raw.get(id), listServers, getServer, fetchSingle, onList, cachedServers, iconVersion, clearCache, decodeStream, isNorwegian, mapServer, ServerMsg };
