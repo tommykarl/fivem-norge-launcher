@@ -1,0 +1,64 @@
+# Autosync: hver gang du pusher til main, bygger GitHub launcheren for Windows.
+# Finnes det ikke allerede en release for versjonen i package.json, lages en ny
+# (med Setup- og Portable-.exe). Launcheren finner den og kan oppdatere seg selv.
+#
+# Ny versjon = øk "version" i package.json og push.
+
+name: Bygg og publiser
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Finn versjon
+        id: ver
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if gh release view "v$VERSION" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release v$VERSION finnes allerede – hopper over bygging. Øk version i package.json for å lage en ny."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Installer avhengigheter
+        if: steps.ver.outputs.exists == 'false'
+        run: npm ci
+
+      - name: Lag .env
+        if: steps.ver.outputs.exists == 'false'
+        shell: bash
+        run: |
+          # Discord Client ID er ikke hemmelig (den står i innloggingslenken), men kan overstyres
+          # med en repository-variabel DISCORD_CLIENT_ID under Settings → Secrets and variables → Actions.
+          echo "DISCORD_CLIENT_ID=${{ vars.DISCORD_CLIENT_ID || '833800432866295868' }}" > .env
+          echo "UPDATE_REPO=${{ github.repository }}" >> .env
+
+      - name: Bygg og publiser release
+        if: steps.ver.outputs.exists == 'false'
+        run: npx vite build && npx electron-builder --win --x64 --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,92 @@
+{
+  "name": "fivem-norge-launcher",
+  "productName": "FiveM Norge Launcher",
+  "version": "1.3.0",
+  "description": "Launcher for norske FiveM-servere med Discord-innlogging, søk og lagrede servere",
+  "main": "electron/main.cjs",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently -k -n vite,electron \"vite\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+    "build": "vite build",
+    "start": "vite build && electron .",
+    "dist": "vite build && electron-builder"
+  },
+  "dependencies": {
+    "@xhayper/discord-rpc": "^1.5.1",
+    "dotenv": "^16.4.5",
+    "protobufjs": "^7.4.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.0",
+    "cross-env": "^7.0.3",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "vite": "^6.0.3",
+    "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "no.fivemnorge.launcher",
+    "productName": "FiveM Norge Launcher",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "package.json",
+      {
+        "from": ".",
+        "filter": [
+          ".env"
+        ]
+      }
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": true
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "FiveM Norge Launcher",
+      "artifactName": "FiveM-Norge-Launcher-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "FiveM-Norge-Launcher-Portable-${version}.${ext}"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "tommykarl",
+        "repo": "fivem-norge-launcher",
+        "releaseType": "release"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tommykarl/fivem-norge-launcher.git"
+  }
+}
