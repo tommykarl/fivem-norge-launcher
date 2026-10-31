@@ -11,6 +11,7 @@ import StatusPage from './pages/StatusPage.jsx';
 import ComparePage from './pages/ComparePage.jsx';
 import ConnectModal from './components/ConnectModal.jsx';
 import ShortcutsModal from './components/ShortcutsModal.jsx';
+import Announcements from './components/Announcements.jsx';
 import { api, errText } from './api.js';
 
 const BACK_LABELS = { home: 'Hjem', servers: 'Alle servere', saved: 'Lagrede', recent: 'Nylig spilt', settings: 'Innstillinger', status: 'FiveM-status', compare: 'Sammenligning' };
@@ -28,6 +29,8 @@ export default function App() {
   const [route, setRoute] = useState({ name: 'home' });
   const [modal, setModal] = useState(null); // 'cache' | 'connect' | 'shortcuts'
   const [notes, setNotes] = useState({});
+  const [backend, setBackend] = useState({ enabled: false, config: { announcements: [], servers: {} }, account: null });
+  const [banned, setBanned] = useState(null);
   const [compareIds, setCompareIds] = useState([]);
   const [updateState, setUpdateState] = useState(null); // { phase: 'downloading'|'ready'|'error', pct, version, error }
   const [settings, setSettings] = useState(null);
@@ -68,6 +71,10 @@ export default function App() {
   const loadActivity = useCallback(() => api.activity.get().then(setActivity).catch(() => {}), []);
   const loadWatch = useCallback(() => api.watch.list().then(setWatch).catch(() => {}), []);
   const loadNotes = useCallback(() => api.notes.get().then(setNotes).catch(() => {}), []);
+  const loadBackend = useCallback(() => api.backend.state().then((b) => {
+    setBackend(b);
+    if (b.account?.banned) setBanned({ reason: b.account.banReason });
+  }).catch(() => {}), []);
   const loadStatus = useCallback(async (force = false) => {
     setStatusBusy(true);
     try {
@@ -88,6 +95,7 @@ export default function App() {
     loadActivity();
     loadWatch();
     loadNotes();
+    loadBackend();
     loadStatus();
     const st = setInterval(() => loadStatus(), 3 * 60_000);
     api.settings.get().then((st) => {
@@ -109,6 +117,12 @@ export default function App() {
       api.on('watch:changed', loadWatch),
       api.on('activity:changed', loadActivity),
       api.on('status:changed', () => loadStatus()),
+      api.on('backend:changed', loadBackend),
+      api.on('backend:banned', (reason) => {
+        setBanned({ reason });
+        setUser(null);
+        setFavorites([]);
+      }),
       api.on('nav:server', (id) => go({ name: 'server', id })),
       api.on('update:progress', (pct) => setUpdateState((cur) => (cur?.phase === 'downloading' ? { ...cur, pct } : cur))),
     ];
@@ -150,7 +164,7 @@ export default function App() {
       offs.forEach((off) => off());
       window.removeEventListener('keydown', onKey);
     };
-  }, [loadServers, loadActivity, loadWatch, loadNotes, loadStatus, notify, go]);
+  }, [loadServers, loadActivity, loadWatch, loadNotes, loadBackend, loadStatus, notify, go]);
 
   // Oppdater serverlisten med intervallet fra innstillingene
   const refreshMin = settings?.refreshMin || 2;
@@ -237,7 +251,15 @@ export default function App() {
   };
 
   const favIds = useMemo(() => new Set(favorites.map((f) => f.id)), [favorites]);
-  const totalPlayers = useMemo(() => servers.reduce((n, s) => n + s.clients, 0), [servers]);
+
+  // Serverinnstillinger fra adminpanelet: skjul, verifiser og fremhev
+  const shownServers = useMemo(() => {
+    const ov = backend.config?.servers || {};
+    return servers
+      .filter((s) => !ov[s.id]?.hidden)
+      .map((s) => (ov[s.id] ? { ...s, verified: !!ov[s.id].verified, featured: !!ov[s.id].featured } : s));
+  }, [servers, backend.config]);
+  const totalPlayers = useMemo(() => shownServers.reduce((n, s) => n + s.clients, 0), [shownServers]);
 
   const login = async () => {
     setAuthBusy(true);
@@ -295,13 +317,13 @@ export default function App() {
   // Server for serversiden: fra listen, ellers fra lagrede/nylig spilt (kan være offline)
   const routeServer = useMemo(() => {
     if (route.name !== 'server') return null;
-    const live = servers.find((s) => s.id === route.id);
+    const live = shownServers.find((s) => s.id === route.id) || servers.find((s) => s.id === route.id);
     if (live) return live;
     const known = favorites.find((f) => f.id === route.id) || activity.recent.find((r) => r.id === route.id);
     return { id: route.id, name: known?.name || route.title || route.id, clients: 0, max: 0, tags: [], offline: true };
-  }, [route, servers, favorites, activity.recent]);
+  }, [route, servers, shownServers, favorites, activity.recent]);
 
-  const counts = { servers: servers.length, saved: favorites.length, recent: activity.recent.length };
+  const counts = { servers: shownServers.length, saved: favorites.length, recent: activity.recent.length };
 
   return (
     <div className={`app${settings?.compact ? ' compact' : ''}`}>
@@ -321,10 +343,11 @@ export default function App() {
         />
 
         <main className="main" ref={mainRef} key={iconKey}>
+          <Announcements items={backend.config?.announcements || []} banned={banned} />
           {route.name === 'home' && (
             <HomePage
               user={user}
-              servers={servers}
+              servers={shownServers}
               favorites={favorites}
               activity={activity}
               watch={watch}
@@ -340,7 +363,7 @@ export default function App() {
           {['servers', 'saved', 'recent'].includes(route.name) && (
             <ServersPage
               view={route.name}
-              servers={servers}
+              servers={shownServers}
               favorites={favorites}
               favIds={favIds}
               user={user}
@@ -371,7 +394,7 @@ export default function App() {
 
           {route.name === 'compare' && (
             <ComparePage
-              servers={servers}
+              servers={shownServers}
               ids={compareIds}
               favIds={favIds}
               activity={activity}
@@ -398,6 +421,8 @@ export default function App() {
               onDownloadUpdate={() => update && downloadUpdate(update)}
               onInstallUpdate={installUpdate}
               onShowShortcuts={() => setModal('shortcuts')}
+              backend={backend}
+              onRefreshBackend={async () => setBackend(await api.backend.refresh())}
               onCheckUpdate={checkUpdate}
               checking={checking}
               notify={notify}

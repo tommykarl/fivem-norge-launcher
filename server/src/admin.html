@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin – FiveM Norge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root { color-scheme: dark;
+  --bg: #07090e; --surface: #0f131d; --surface-2: #151a27; --hover: #121725; --hero: #10162a;
+  --line: #1a2030; --line-2: #1e2535; --line-3: #2a3348; --text: #eef1f7; --text-2: #c3cadb; --muted: #a7b0c5; --faint: #7f8aa3;
+  --accent: #d92b43; --accent-hover: #e83a52; --accent-text: #ff8f9b; --green: #3ddc97; --gold: #ffc24b; --blue: #8fb0ff;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Geist', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; padding: 0; }
+button:disabled { opacity: .45; cursor: default; }
+:focus-visible { outline: 2px solid #6d8bff; outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.mono { font-family: 'Geist Mono', ui-monospace, monospace; }
+.muted { color: var(--muted); font-size: 13px; }
+
+.layout { display: flex; min-height: 100vh; flex-wrap: wrap; }
+.side { flex: 1 1 240px; max-width: 100%; padding: 20px 14px; border-right: 1px solid #141926; display: flex; flex-direction: column; gap: 20px; }
+@media (min-width: 900px) { .side { max-width: 248px; position: sticky; top: 0; height: 100vh; } }
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 10px; font-weight: 700; }
+.brand small { display: block; font-size: 12px; color: var(--faint); font-weight: 500; }
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav button { display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 12px; border-radius: 12px; color: var(--muted); font-size: 14px; font-weight: 500; text-align: left; width: 100%; }
+.nav button:hover { background: var(--hover); color: var(--text); }
+.nav button[aria-current="page"] { background: var(--surface-2); color: var(--text); }
+.nav button span { flex: 1; }
+.nav em { font-style: normal; font-size: 12px; font-family: 'Geist Mono', monospace; color: var(--faint); }
+.nav em.alert { color: var(--accent-text); }
+.me { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 14px; background: var(--surface); }
+.me img { width: 36px; height: 36px; border-radius: 50%; }
+.me div { flex: 1; min-width: 0; }
+.me strong { display: block; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.me a { color: var(--muted); font-size: 13px; }
+
+main { flex: 999 1 600px; min-width: 0; padding: 28px 32px 48px; }
+.head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+.head h1 { margin: 0; font-size: 28px; letter-spacing: -0.03em; }
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.search { flex: 1 1 280px; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line-2); color: var(--faint); }
+.search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); outline: none; font-size: 15px; }
+.seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line-2); }
+.seg button { height: 36px; padding: 0 12px; border-radius: 9px; font-size: 14px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line-3); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 11px; background: var(--surface-2); border: 1px solid var(--line-3); font-weight: 600; font-size: 14px; white-space: nowrap; }
+.btn:hover:not(:disabled) { border-color: #4a5674; }
+.btn.primary { background: var(--accent); border-color: transparent; color: #fff; }
+.btn.primary:hover:not(:disabled) { background: var(--accent-hover); }
+.btn.danger { background: transparent; color: var(--accent-text); border-color: rgba(217,43,67,.45); }
+.btn.sm { height: 34px; padding: 0 12px; font-size: 13px; }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+.kpi .l { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.kpi .v { margin-top: 8px; font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
+.kpi .s { margin-top: 4px; font-size: 13px; color: var(--muted); }
+.kpi.alert .v { color: var(--accent-text); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 20px; min-width: 0; }
+.card h2 { margin: 0 0 14px; font-size: 16px; }
+.bars { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 6px; height: 150px; align-items: end; }
+.bars div { position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
+.bars i { display: block; border-radius: 5px 5px 2px 2px; background: color-mix(in srgb, var(--accent) 70%, transparent); min-height: 3px; }
+.bars span { font-size: 10px; color: var(--faint); text-align: center; margin-top: 6px; font-family: 'Geist Mono', monospace; }
+.hbar { display: grid; grid-template-columns: 70px minmax(0, 1fr) 44px; gap: 10px; align-items: center; font-size: 13px; padding: 6px 0; }
+.hbar .t { height: 8px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
+.hbar .t b { display: block; height: 100%; background: var(--green); border-radius: 6px; }
+
+.table { width: 100%; border-collapse: collapse; background: #0b0e16; border: 1px solid #161c2a; border-radius: 16px; overflow: hidden; }
+.tablewrap { overflow-x: auto; border-radius: 16px; }
+.table th { text-align: left; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); padding: 12px 16px; border-bottom: 1px solid #161c2a; white-space: nowrap; }
+.table td { padding: 12px 16px; border-bottom: 1px solid #131826; font-size: 14px; vertical-align: middle; }
+.table tr:last-child td { border-bottom: 0; }
+.table tbody tr:hover { background: var(--hover); }
+.table tbody tr.click { cursor: pointer; }
+.who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.who img { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; background: var(--surface-2); }
+.who strong { display: block; font-size: 14px; }
+.who small { color: var(--faint); font-family: 'Geist Mono', monospace; font-size: 12px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid; white-space: nowrap; }
+.pill.ok { color: var(--green); border-color: rgba(61,220,151,.35); background: rgba(61,220,151,.08); }
+.pill.warn { color: var(--gold); border-color: rgba(255,194,75,.35); background: rgba(255,194,75,.08); }
+.pill.down { color: var(--accent-text); border-color: rgba(255,107,122,.4); background: rgba(255,107,122,.1); }
+.pill.blue { color: var(--blue); border-color: rgba(143,176,255,.35); background: rgba(143,176,255,.08); }
+.pill.grey { color: var(--muted); border-color: var(--line-3); }
+.empty { padding: 40px 20px; text-align: center; color: var(--muted); }
+
+/* Skuff for redigering */
+.drawer-bg { position: fixed; inset: 0; background: rgba(4,6,12,.6); z-index: 40; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(440px, 100vw); background: var(--surface); border-left: 1px solid var(--line-2); z-index: 41; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; box-shadow: -20px 0 60px rgba(0,0,0,.5); }
+.drawer .top { display: flex; align-items: center; gap: 14px; }
+.drawer .top img { width: 56px; height: 56px; border-radius: 50%; }
+.drawer h2 { margin: 0; font-size: 20px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label, .field .lbl { font-size: 13px; font-weight: 600; color: var(--text-2); }
+.field input[type=text], .field input[type=datetime-local], .field textarea, .field select {
+  width: 100%; padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line-2); color: var(--text); outline: none; font-size: 14px;
+}
+.field textarea { min-height: 90px; resize: vertical; }
+.check { display: flex; align-items: center; gap: 10px; min-height: 40px; font-size: 14px; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--accent); }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.facts div { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+.facts dt { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); }
+.facts dd { margin: 4px 0 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.row-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.banner { border-radius: 12px; padding: 12px 14px; border: 1px solid; font-size: 14px; }
+.banner.info { color: var(--blue); border-color: rgba(143,176,255,.35); background: rgba(143,176,255,.08); }
+.banner.warning { color: var(--gold); border-color: rgba(255,194,75,.35); background: rgba(255,194,75,.08); }
+.banner.critical { color: var(--accent-text); border-color: rgba(255,107,122,.4); background: rgba(255,107,122,.1); }
+.banner strong { display: block; color: var(--text); margin-bottom: 2px; }
+pre.stack { margin: 8px 0 0; padding: 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line-2); font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text-2); max-height: 260px; overflow-y: auto; }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); font-weight: 600; font-size: 14px; padding: 12px 18px; border-radius: 12px; z-index: 60; box-shadow: 0 16px 40px rgba(0,0,0,.5); max-width: calc(100vw - 32px); }
+.toast.err { background: #ff8f9b; }
+@media (max-width: 700px) { main { padding: 20px 16px 40px; } .hide-sm { display: none; } }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="side">
+    <div class="brand">
+      <svg width="26" height="19" viewBox="0 0 22 16" aria-hidden="true"><rect width="22" height="16" rx="3" fill="#D92B43"/><rect x="6" width="4" height="16" fill="#fff"/><rect y="6" width="22" height="4" fill="#fff"/><rect x="7" width="2" height="16" fill="#1C3E8C"/><rect y="7" width="22" height="2" fill="#1C3E8C"/></svg>
+      <div>FiveM Norge<small>Adminpanel</small></div>
+    </div>
+    <nav class="nav" aria-label="Admin-meny" id="nav"></nav>
+    <div class="me" id="me"></div>
+  </aside>
+  <main id="main" aria-live="polite"></main>
+</div>
+<div id="overlay"></div>
+<div id="toast" role="status"></div>
+
+<script>
+'use strict';
+// ---------- Hjelpere ----------
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmtNum = (n) => Number(n || 0).toLocaleString('no');
+function ago(ts) {
+  if (!ts) return '–';
+  const m = Math.round((Date.now() - ts) / 60000);
+  if (m < 1) return 'akkurat nå';
+  if (m < 60) return `${m} min siden`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h} t siden`;
+  const d = Math.round(h / 24);
+  return d < 30 ? `${d} d siden` : new Date(ts).toLocaleDateString('no');
+}
+const dt = (ts) => (ts ? new Date(ts).toLocaleString('no', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '–');
+const toLocalInput = (ts) => (ts ? new Date(ts - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '');
+const fromLocalInput = (v) => (v ? new Date(v).getTime() : null);
+
+let toastTimer;
+function toast(msg, isErr = false) {
+  const t = $('#toast');
+  t.className = `toast${isErr ? ' err' : ''}`;
+  t.textContent = msg;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (t.hidden = true), 3200);
+}
+
+async function api(path, opts = {}) {
+  const res = await fetch(`/api/admin${path}`, {
+    method: opts.method || 'GET',
+    headers: { 'content-type': 'application/json', 'x-requested-with': 'fnl-admin' },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+    credentials: 'same-origin',
+  });
+  if (res.status === 401) {
+    location.href = '/admin';
+    throw new Error('Ikke innlogget');
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Feil ${res.status}`);
+  return data;
+}
+
+// ---------- Tilstand og ruting ----------
+const PAGES = [
+  { id: 'overview', label: 'Oversikt', icon: 'M3 13h8V3H3zM13 21h8V11h-8zM3 21h8v-6H3zM13 3v6h8V3z' },
+  { id: 'users', label: 'Brukere', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8' },
+  { id: 'servers', label: 'Servere', icon: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01' },
+  { id: 'announcements', label: 'Kunngjøringer', icon: 'M3 11l18-8v18L3 13zM11.6 16.8a3 3 0 1 1-5.8-1.6' },
+  { id: 'errors', label: 'Feilrapporter', icon: 'M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z' },
+  { id: 'audit', label: 'Logg', icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2' },
+];
+const state = { me: null, page: (location.hash || '#overview').slice(1), counts: {} };
+const icon = (d, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+const canManage = () => ['owner', 'admin'].includes(state.me?.role);
+const ROLE_LABEL = { owner: 'Eier', admin: 'Admin', moderator: 'Moderator', user: 'Bruker' };
+
+function renderNav() {
+  $('#nav').innerHTML = PAGES.map((p) => {
+    const c = p.id === 'errors' ? state.counts.errors : p.id === 'users' ? state.counts.users : null;
+    return `<button data-page="${p.id}" ${state.page === p.id ? 'aria-current="page"' : ''}>${icon(p.icon)}<span>${p.label}</span>${c != null ? `<em class="${p.id === 'errors' && c ? 'alert' : ''}">${fmtNum(c)}</em>` : ''}</button>`;
+  }).join('');
+  $('#nav').querySelectorAll('button').forEach((b) => (b.onclick = () => go(b.dataset.page)));
+}
+function go(page) {
+  state.page = PAGES.some((p) => p.id === page) ? page : 'overview';
+  history.replaceState(null, '', `#${state.page}`);
+  renderNav();
+  closeDrawer();
+  render();
+}
+window.addEventListener('hashchange', () => go(location.hash.slice(1)));
+
+function closeDrawer() {
+  $('#overlay').innerHTML = '';
+}
+document.addEventListener('keydown', (e) => e.key === 'Escape' && closeDrawer());
+
+async function render() {
+  const main = $('#main');
+  main.innerHTML = `<div class="empty">Laster…</div>`;
+  try {
+    await ({ overview, users, servers, announcements, errors, audit: auditPage })[state.page](main);
+  } catch (e) {
+    main.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+  }
+}
+
+// ---------- Oversikt ----------
+async function overview(main) {
+  const d = await api('/overview');
+  state.counts.errors = d.openErrors;
+  state.counts.users = d.users.total;
+  renderNav();
+  const maxDay = Math.max(1, ...d.days.map((x) => x.newUsers + x.newInstalls));
+  const maxV = Math.max(1, ...d.versions.map((v) => v.n));
+  main.innerHTML = `
+    <div class="head"><h1>Oversikt</h1><span class="muted">Oppdatert ${new Date().toLocaleTimeString('no', { hour: '2-digit', minute: '2-digit' })}</span></div>
+    <div class="kpis">
+      <div class="kpi"><div class="l">Aktive brukere</div><div class="v">${fmtNum(d.users.active24h)}</div><div class="s">siste døgn · ${fmtNum(d.users.active7d)} siste 7 d</div></div>
+      <div class="kpi"><div class="l">Installasjoner i bruk</div><div class="v">${fmtNum(d.installs.active7d)}</div><div class="s">siste 7 d · ${fmtNum(d.installs.total)} totalt</div></div>
+      <div class="kpi"><div class="l">Nye brukere</div><div class="v">${fmtNum(d.users.new7d)}</div><div class="s">siste 7 d · ${fmtNum(d.users.total)} totalt</div></div>
+      <div class="kpi ${d.openErrors ? 'alert' : ''}"><div class="l">Åpne feil</div><div class="v">${fmtNum(d.openErrors)}</div><div class="s">${fmtNum(d.activeAnnouncements)} aktive kunngjøringer · ${fmtNum(d.users.banned)} utestengt</div></div>
+    </div>
+    <div class="grid2">
+      <section class="card"><h2>Nye installasjoner og brukere, siste 14 dager</h2>
+        <div class="bars" role="img" aria-label="Nye installasjoner og brukere per dag">
+          ${d.days.map((x) => `<div title="${new Date(x.end - 1).toLocaleDateString('no')}: ${x.newInstalls} installasjoner, ${x.newUsers} brukere"><i style="height:${Math.round(((x.newUsers + x.newInstalls) / maxDay) * 100)}%"></i><span>${new Date(x.end - 1).getDate()}</span></div>`).join('')}
+        </div></section>
+      <section class="card"><h2>Versjoner i bruk (siste 30 d)</h2>
+        ${d.versions.length ? d.versions.map((v) => `<div class="hbar"><span class="mono">${esc(v.version || '?')}</span><div class="t"><b style="width:${Math.round((v.n / maxV) * 100)}%"></b></div><span class="mono">${fmtNum(v.n)}</span></div>`).join('') : '<div class="empty">Ingen data ennå</div>'}
+      </section>
+    </div>
+    <section class="card" style="margin-top:16px"><h2>Siste handlinger</h2>${auditTable(d.log)}</section>`;
+}
+
+// ---------- Brukere ----------
+const userState = { q: '', filter: 'all' };
+async function users(main) {
+  main.innerHTML = `
+    <div class="head"><h1>Brukere</h1><span class="muted">Discord-brukere som har logget inn i launcheren</span></div>
+    <div class="toolbar">
+      <label class="search">${icon('M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4')}<span class="sr-only">Søk</span><input id="uq" placeholder="Søk på navn eller Discord-ID" value="${esc(userState.q)}"></label>
+      <div class="seg" role="group" aria-label="Filter">
+        ${[['all', 'Alle'], ['active', 'Aktive'], ['staff', 'Stab'], ['banned', 'Utestengt']].map(([k, l]) => `<button data-f="${k}" aria-pressed="${userState.filter === k}">${l}</button>`).join('')}
+      </div>
+    </div>
+    <div id="ulist"><div class="empty">Laster…</div></div>`;
+  let t;
+  $('#uq').oninput = (e) => {
+    clearTimeout(t);
+    userState.q = e.target.value;
+    t = setTimeout(loadUsers, 250);
+  };
+  main.querySelectorAll('[data-f]').forEach((b) => (b.onclick = () => {
+    userState.filter = b.dataset.f;
+    main.querySelectorAll('[data-f]').forEach((x) => x.setAttribute('aria-pressed', x === b));
+    loadUsers();
+  }));
+  await loadUsers();
+}
+async function loadUsers() {
+  const list = await api(`/users?q=${encodeURIComponent(userState.q)}&filter=${userState.filter}`);
+  const el = $('#ulist');
+  if (!el) return;
+  if (!list.length) return (el.innerHTML = '<div class="empty">Ingen brukere funnet.</div>');
+  el.innerHTML = `<div class="tablewrap"><table class="table"><thead><tr><th>Bruker</th><th>Rolle</th><th class="hide-sm">Versjon</th><th class="hide-sm">Starter</th><th>Sist sett</th></tr></thead><tbody>
+    ${list.map((u, i) => `<tr class="click" data-i="${i}" tabindex="0">
+      <td><div class="who"><img src="${esc(u.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png')}" alt=""><div><strong>${esc(u.display_name || u.username)}</strong><small>${esc(u.id)}</small></div></div></td>
+      <td>${u.banned ? '<span class="pill down">Utestengt</span>' : rolePill(u.owner ? 'owner' : u.role)}</td>
+      <td class="hide-sm mono">${esc(u.version || '–')}</td>
+      <td class="hide-sm mono">${fmtNum(u.launches)}</td>
+      <td>${ago(u.last_seen)}</td></tr>`).join('')}
+  </tbody></table></div>`;
+  el.querySelectorAll('tr[data-i]').forEach((tr) => {
+    const open = () => userDrawer(list[Number(tr.dataset.i)]);
+    tr.onclick = open;
+    tr.onkeydown = (e) => e.key === 'Enter' && open();
+  });
+}
+const rolePill = (r) => `<span class="pill ${r === 'owner' || r === 'admin' ? 'blue' : r === 'moderator' ? 'warn' : 'grey'}">${ROLE_LABEL[r] || r}</span>`;
+
+function userDrawer(u) {
+  const self = u.id === state.me.id;
+  const locked = u.owner || self;
+  $('#overlay').innerHTML = `<div class="drawer-bg"></div><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dh">
+    <div class="top"><img src="${esc(u.avatar || '')}" alt=""><div><h2 id="dh">${esc(u.display_name || u.username)}</h2><div class="muted mono">@${esc(u.username)} · ${esc(u.id)}</div></div></div>
+    <dl class="facts" style="margin:0">
+      <div><dt>Første gang</dt><dd>${dt(u.first_seen)}</dd></div>
+      <div><dt>Sist sett</dt><dd>${ago(u.last_seen)}</dd></div>
+      <div><dt>Versjon</dt><dd class="mono">${esc(u.version || '–')}</dd></div>
+      <div><dt>Oppstarter</dt><dd>${fmtNum(u.launches)}</dd></div>
+    </dl>
+    ${locked ? `<div class="banner info">${u.owner ? 'Eiere styres av ADMIN_DISCORD_IDS på serveren.' : 'Du kan ikke endre din egen rolle eller utestenge deg selv.'}</div>` : ''}
+    <div class="field"><label for="drole">Rolle</label>
+      <select id="drole" ${locked || !canManage() ? 'disabled' : ''}>
+        ${['user', 'moderator', 'admin'].map((r) => `<option value="${r}" ${u.role === r ? 'selected' : ''} ${r === 'admin' && state.me.role !== 'owner' ? 'disabled' : ''}>${ROLE_LABEL[r]}</option>`).join('')}
+      </select>
+      <span class="muted">Moderator: kan utestenge brukere og lage kunngjøringer. Admin: alt, inkludert servere og roller.</span>
+    </div>
+    <label class="check"><input type="checkbox" id="dban" ${u.banned ? 'checked' : ''} ${locked ? 'disabled' : ''}> Utesteng fra launcheren</label>
+    <div class="field"><label for="dreason">Årsak (vises for brukeren)</label><input type="text" id="dreason" maxlength="300" value="${esc(u.ban_reason || '')}" ${locked ? 'disabled' : ''}></div>
+    <div class="field"><label for="dnote">Internt notat</label><textarea id="dnote" maxlength="1000">${esc(u.note || '')}</textarea></div>
+    <div class="row-actions"><button class="btn" id="dcancel">Avbryt</button><button class="btn primary" id="dsave">Lagre</button></div>
+  </aside>`;
+  $('.drawer-bg').onclick = closeDrawer;
+  $('#dcancel').onclick = closeDrawer;
+  $('#dsave').onclick = async () => {
+    const body = { note: $('#dnote').value };
+    if (!locked) {
+      body.banned = $('#dban').checked;
+      body.banReason = $('#dreason').value;
+      if (canManage() && $('#drole').value !== u.role) body.role = $('#drole').value;
+    }
+    try {
+      await api(`/users/${u.id}`, { method: 'POST', body });
+      toast('Lagret');
+      closeDrawer();
+      loadUsers();
+    } catch (e) {
+      toast(e.message, true);
+    }
+  };
+  $('#drole')?.focus();
+}
+
+// ---------- Servere ----------
+async function servers(main) {
+  const list = await api('/servers');
+  const ro = !canManage();
+  main.innerHTML = `
+    <div class="head"><h1>Servere</h1><span class="muted">Fremhev, verifiser eller skjul servere i launcheren</span></div>
+    ${ro ? '<div class="banner info" style="margin-bottom:16px">Bare administratorer kan endre servere.</div>' : `
+    <form class="card" id="sadd" style="margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <div class="field" style="flex:1 1 200px"><label for="sid">Server-ID eller cfx.re-lenke</label><input type="text" id="sid" placeholder="cfx.re/join/abc123" required></div>
+      <div class="field" style="flex:1 1 200px"><label for="sname">Navn</label><input type="text" id="sname" placeholder="Legacyrp.no" maxlength="120"></div>
+      <button class="btn primary" type="submit">Legg til</button>
+    </form>`}
+    ${list.length ? `<div class="tablewrap"><table class="table"><thead><tr><th>Server</th><th>Fremhevet</th><th>Verifisert</th><th>Skjult</th><th class="hide-sm">Endret</th><th></th></tr></thead><tbody>
+      ${list.map((s, i) => `<tr data-i="${i}">
+        <td><strong>${esc(s.name)}</strong><div class="muted mono">cfx.re/join/${esc(s.server_id)}</div>${s.note ? `<div class="muted">${esc(s.note)}</div>` : ''}</td>
+        ${['featured', 'verified', 'hidden'].map((k) => `<td><label class="check"><input type="checkbox" data-k="${k}" ${s[k] ? 'checked' : ''} ${ro ? 'disabled' : ''}><span class="sr-only">${k}</span></label></td>`).join('')}
+        <td class="hide-sm muted">${ago(s.updated_at)} · ${esc(s.updated_by || '')}</td>
+        <td>${ro ? '' : '<button class="btn danger sm" data-del>Fjern</button>'}</td></tr>`).join('')}
+    </tbody></table></div>` : '<div class="card empty">Ingen serverinnstillinger ennå. Legg til en server over.</div>'}
+    <p class="muted" style="margin-top:14px">Fremhevet: vises øverst og i «Mest spilt nå». Verifisert: får et merke. Skjult: vises ikke i launcherens liste.</p>`;
+  $('#sadd')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const raw = $('#sid').value.trim().replace(/^https?:\/\//, '');
+    const m = raw.match(/(?:cfx\.re\/join\/)?([a-z0-9]{4,10})\/?$/i);
+    if (!m) return toast('Skriv en gyldig server-ID eller cfx.re-lenke', true);
+    try {
+      await api(`/servers/${m[1].toLowerCase()}`, { method: 'POST', body: { name: $('#sname').value || m[1], featured: false, verified: false, hidden: false } });
+      toast('Server lagt til');
+      render();
+    } catch (er) {
+      toast(er.message, true);
+    }
+  });
+  main.querySelectorAll('tr[data-i]').forEach((tr) => {
+    const s = list[Number(tr.dataset.i)];
+    tr.querySelectorAll('input[data-k]').forEach((cb) => (cb.onchange = async () => {
+      s[cb.dataset.k] = cb.checked ? 1 : 0;
+      try {
+        await api(`/servers/${s.server_id}`, { method: 'POST', body: { name: s.name, note: s.note, featured: !!s.featured, verified: !!s.verified, hidden: !!s.hidden } });
+        toast('Lagret');
+      } catch (e) {
+        toast(e.message, true);
+        cb.checked = !cb.checked;
+      }
+    }));
+    // Fjern krever to trykk (ingen nettleserdialog)
+    tr.querySelector('[data-del]')?.addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      if (!btn.dataset.armed) {
+        btn.dataset.armed = '1';
+        btn.textContent = 'Bekreft';
+        setTimeout(() => {
+          if (btn.isConnected) {
+            delete btn.dataset.armed;
+            btn.textContent = 'Fjern';
+          }
+        }, 4000);
+        return;
+      }
+      try {
+        await api(`/servers/${s.server_id}`, { method: 'DELETE' });
+        toast(`Fjernet ${s.name}`);
+        render();
+      } catch (er) {
+        toast(er.message, true);
+      }
+    });
+  });
+}
+
+// ---------- Kunngjøringer ----------
+async function announcements(main) {
+  const list = await api('/announcements');
+  const LEVEL = { info: ['blue', 'Info'], warning: ['warn', 'Advarsel'], critical: ['down', 'Kritisk'] };
+  const live = (a) => a.active && (!a.starts_at || a.starts_at <= Date.now()) && (!a.ends_at || a.ends_at > Date.now());
+  main.innerHTML = `
+    <div class="head"><h1>Kunngjøringer</h1><button class="btn primary" id="anew">Ny kunngjøring</button></div>
+    <p class="muted" style="margin-top:-12px;margin-bottom:16px">Vises som et banner øverst i launcheren. Kritiske vises først.</p>
+    ${list.length ? `<div class="tablewrap"><table class="table"><thead><tr><th>Kunngjøring</th><th>Nivå</th><th>Status</th><th class="hide-sm">Periode</th><th></th></tr></thead><tbody>
+      ${list.map((a, i) => `<tr class="click" data-i="${i}" tabindex="0">
+        <td><strong>${esc(a.title)}</strong><div class="muted">${esc((a.body || '').slice(0, 90))}</div></td>
+        <td><span class="pill ${LEVEL[a.level][0]}">${LEVEL[a.level][1]}</span></td>
+        <td>${live(a) ? '<span class="pill ok">Vises nå</span>' : a.active ? '<span class="pill grey">Planlagt/utløpt</span>' : '<span class="pill grey">Av</span>'}</td>
+        <td class="hide-sm muted">${a.starts_at ? dt(a.starts_at) : 'Nå'} – ${a.ends_at ? dt(a.ends_at) : 'til den slås av'}</td>
+        <td class="muted">${esc(a.created_by || '')}</td></tr>`).join('')}
+    </tbody></table></div>` : '<div class="card empty">Ingen kunngjøringer ennå.</div>'}`;
+  $('#anew').onclick = () => annDrawer(null);
+  main.querySelectorAll('tr[data-i]').forEach((tr) => {
+    const open = () => annDrawer(list[Number(tr.dataset.i)]);
+    tr.onclick = open;
+    tr.onkeydown = (e) => e.key === 'Enter' && open();
+  });
+}
+function annDrawer(a) {
+  const isNew = !a;
+  a = a || { title: '', body: '', level: 'info', active: 1 };
+  $('#overlay').innerHTML = `<div class="drawer-bg"></div><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="ah">
+    <h2 id="ah">${isNew ? 'Ny kunngjøring' : 'Rediger kunngjøring'}</h2>
+    <div class="field"><label for="at">Tittel</label><input type="text" id="at" maxlength="120" value="${esc(a.title)}"></div>
+    <div class="field"><label for="ab">Tekst</label><textarea id="ab" maxlength="1000">${esc(a.body || '')}</textarea></div>
+    <div class="field"><label for="al">Nivå</label><select id="al">
+      <option value="info" ${a.level === 'info' ? 'selected' : ''}>Info</option>
+      <option value="warning" ${a.level === 'warning' ? 'selected' : ''}>Advarsel</option>
+      <option value="critical" ${a.level === 'critical' ? 'selected' : ''}>Kritisk</option></select></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div class="field" style="flex:1 1 160px"><label for="as">Fra (valgfritt)</label><input type="datetime-local" id="as" value="${toLocalInput(a.starts_at)}"></div>
+      <div class="field" style="flex:1 1 160px"><label for="ae">Til (valgfritt)</label><input type="datetime-local" id="ae" value="${toLocalInput(a.ends_at)}"></div>
+    </div>
+    <label class="check"><input type="checkbox" id="aa" ${a.active ? 'checked' : ''}> Aktiv</label>
+    <div><div class="muted" style="margin-bottom:6px">Forhåndsvisning i launcheren</div><div class="banner ${a.level}" id="apv"></div></div>
+    <div class="row-actions">${isNew ? '' : '<button class="btn danger" id="adel">Slett</button>'}<button class="btn" id="acancel">Avbryt</button><button class="btn primary" id="asave">${isNew ? 'Publiser' : 'Lagre'}</button></div>
+  </aside>`;
+  const pv = () => {
+    const el = $('#apv');
+    el.className = `banner ${$('#al').value}`;
+    el.innerHTML = `<strong>${esc($('#at').value || 'Tittel')}</strong>${esc($('#ab').value)}`;
+  };
+  ['#at', '#ab', '#al'].forEach((s) => ($(s).oninput = pv));
+  $('#al').onchange = pv;
+  pv();
+  $('.drawer-bg').onclick = closeDrawer;
+  $('#acancel').onclick = closeDrawer;
+  $('#asave').onclick = async () => {
+    const body = { title: $('#at').value.trim(), body: $('#ab').value, level: $('#al').value, active: $('#aa').checked, startsAt: fromLocalInput($('#as').value), endsAt: fromLocalInput($('#ae').value) };
+    if (!body.title) return toast('Skriv en tittel', true);
+    try {
+      await api(isNew ? '/announcements' : `/announcements/${a.id}`, { method: 'POST', body });
+      toast(isNew ? 'Publisert' : 'Lagret');
+      closeDrawer();
+      render();
+    } catch (e) {
+      toast(e.message, true);
+    }
+  };
+  $('#adel')?.addEventListener('click', async (e) => {
+    const b = e.currentTarget;
+    if (!b.dataset.armed) {
+      b.dataset.armed = '1';
+      b.textContent = 'Bekreft sletting';
+      return;
+    }
+    try {
+      await api(`/announcements/${a.id}`, { method: 'DELETE' });
+      toast('Slettet');
+      closeDrawer();
+      render();
+    } catch (er) {
+      toast(er.message, true);
+    }
+  });
+  $('#at').focus();
+}
+
+// ---------- Feilrapporter ----------
+let showAllErrors = false;
+async function errors(main) {
+  const list = await api(`/errors${showAllErrors ? '?show=all' : ''}`);
+  main.innerHTML = `
+    <div class="head"><h1>Feilrapporter</h1>
+      <div class="seg" role="group" aria-label="Vis"><button data-s="open" aria-pressed="${!showAllErrors}">Åpne</button><button data-s="all" aria-pressed="${showAllErrors}">Alle</button></div></div>
+    <p class="muted" style="margin-top:-12px;margin-bottom:16px">Anonyme feil fra launcheren, slått sammen per melding og versjon.</p>
+    ${list.length ? list.map((e, i) => `<section class="card" style="margin-bottom:10px">
+      <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:1;min-width:0"><strong style="overflow-wrap:anywhere">${esc(e.message)}</strong>
+          <div class="muted" style="margin-top:4px"><span class="mono">${esc(e.version || '?')}</span> · ${fmtNum(e.count)} ganger · ${fmtNum(e.installs)} PC-er · sist ${ago(e.last_seen)}</div></div>
+        ${e.resolved ? '<span class="pill ok">Løst</span>' : '<span class="pill down">Åpen</span>'}
+        <button class="btn sm" data-r="${i}">${e.resolved ? 'Gjenåpne' : 'Marker som løst'}</button>
+      </div>
+      ${e.stack ? `<details style="margin-top:8px"><summary class="muted" style="cursor:pointer">Vis detaljer</summary><pre class="stack">${esc(e.stack)}</pre></details>` : ''}
+    </section>`).join('') : `<div class="card empty">${showAllErrors ? 'Ingen feil rapportert.' : 'Ingen åpne feil.'}</div>`}`;
+  main.querySelectorAll('[data-s]').forEach((b) => (b.onclick = () => {
+    showAllErrors = b.dataset.s === 'all';
+    render();
+  }));
+  main.querySelectorAll('[data-r]').forEach((b) => (b.onclick = async () => {
+    const e = list[Number(b.dataset.r)];
+    try {
+      await api(`/errors/${e.id}`, { method: 'POST', body: { resolved: !e.resolved } });
+      render();
+    } catch (er) {
+      toast(er.message, true);
+    }
+  }));
+}
+
+// ---------- Logg ----------
+function auditTable(rows) {
+  if (!rows.length) return '<div class="empty">Ingen handlinger ennå.</div>';
+  return `<div class="tablewrap"><table class="table"><thead><tr><th>Når</th><th>Hvem</th><th>Handling</th><th class="hide-sm">Gjelder</th></tr></thead><tbody>
+    ${rows.map((r) => `<tr><td class="muted" title="${esc(dt(r.at))}">${ago(r.at)}</td><td>${esc(r.admin_name)}</td><td>${esc(r.action)}</td><td class="hide-sm">${esc(r.target || '')}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+async function auditPage(main) {
+  const rows = await api('/audit');
+  main.innerHTML = `<div class="head"><h1>Logg</h1><span class="muted">Alt administratorer og moderatorer har gjort</span></div>${auditTable(rows)}`;
+}
+
+// ---------- Oppstart ----------
+(async () => {
+  $('#toast').hidden = true;
+  try {
+    state.me = await api('/me');
+  } catch {
+    return;
+  }
+  $('#me').innerHTML = `<img src="${esc(state.me.avatar)}" alt=""><div><strong>${esc(state.me.name)}</strong>${rolePill(state.me.role)}</div><a href="/auth/logout">Logg ut</a>`;
+  renderNav();
+  render();
+})();
+</script>
+</body>
+</html>

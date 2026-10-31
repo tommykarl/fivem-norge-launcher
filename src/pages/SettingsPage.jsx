@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  AlertTriangle, Bell, Bug, Database, Download, FolderOpen, Info, Keyboard, Loader2, LogOut, Monitor, Palette, RefreshCw, RotateCcw, Server, Trash2,
+  AlertTriangle, Bell, Bug, Cloud, ExternalLink, Database, Download, FolderOpen, Info, Keyboard, Loader2, LogOut, Monitor, Palette, RefreshCw, RotateCcw, Server, Trash2,
 } from 'lucide-react';
 import { ShortcutList } from '../components/ShortcutsModal.jsx';
 import DiscordIcon from '../components/DiscordIcon.jsx';
@@ -63,7 +63,7 @@ function Section({ icon: Icon, title, children }) {
 
 export default function SettingsPage({
   settings, setSetting, user, authBusy, onLogin, onLogout, onOpenCache, update, onCheckUpdate, checking, notify,
-  updateState, onDownloadUpdate, onInstallUpdate, onShowShortcuts,
+  updateState, onDownloadUpdate, onInstallUpdate, onShowShortcuts, backend, onRefreshBackend,
 }) {
   const [info, setInfo] = useState(null);
   const [confirm, setConfirm] = useState(null); // 'uninstall' | 'reset'
@@ -254,6 +254,34 @@ export default function SettingsPage({
         </Row>
         {updateState?.phase === 'error' && <div className="set-row"><div className="notice warn"><AlertTriangle size={16} /> {updateState.error}</div></div>}
         {update?.newer && update.notes && <pre className="release-notes">{update.notes}</pre>}
+      </Section>
+
+      <Section icon={Cloud} title="Personvern og tilkobling">
+        <Row
+          title="Send anonym bruksstatistikk og feilrapporter"
+          desc="Hjelper oss å se hvor mange som bruker launcheren, hvilke versjoner som er i bruk og hva som krasjer. Sender en tilfeldig ID per PC, versjon og feilmeldinger – aldri navn eller hva du spiller."
+        >
+          <Toggle label="Send anonym statistikk" checked={settings.telemetry} onChange={(v) => setSetting({ telemetry: v })} />
+        </Row>
+        <Row
+          title="FiveM Norge-tjeneste"
+          desc={
+            !backend?.enabled
+              ? 'Ikke satt opp (BACKEND_URL mangler i .env). Kunngjøringer og serverinnstillinger fra adminpanelet vises ikke.'
+              : backend.connected
+              ? `Tilkoblet ${backend.url}`
+              : `Får ikke kontakt med ${backend.url}${backend.error ? ` (${backend.error})` : ''}`
+          }
+        >
+          {backend?.enabled && (
+            <button className="btn" onClick={onRefreshBackend}><RefreshCw size={16} /> Prøv igjen</button>
+          )}
+        </Row>
+        {backend?.account && ['owner', 'admin', 'moderator'].includes(backend.account.role) && (
+          <Row title="Adminpanel" desc={`Du er ${backend.account.role === 'moderator' ? 'moderator' : 'administrator'}.`}>
+            <button className="btn" onClick={() => api.openExternal(backend.adminUrl)}><ExternalLink size={16} /> Åpne adminpanel</button>
+          </Row>
+        )}
       </Section>
 
       <Section icon={Keyboard} title="Hurtigtaster">

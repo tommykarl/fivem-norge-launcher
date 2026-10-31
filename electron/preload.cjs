@@ -33,6 +33,11 @@ contextBridge.exposeInMainWorld('launcher', {
     get: () => ipcRenderer.invoke('notes:get'),
     set: (server, patch) => ipcRenderer.invoke('notes:set', server.id, server.name, patch),
   },
+  backend: {
+    state: () => ipcRenderer.invoke('backend:state'),
+    refresh: () => ipcRenderer.invoke('backend:refresh'),
+    reportError: (err) => ipcRenderer.send('report:error', { message: String(err?.message || err), stack: String(err?.stack || '') }),
+  },
   status: {
     get: (force = false) => ipcRenderer.invoke('status:get', force),
   },
@@ -45,7 +50,7 @@ contextBridge.exposeInMainWorld('launcher', {
   },
   // Hendelser fra hovedprosessen. Returnerer en funksjon som fjerner lytteren.
   on: (channel, fn) => {
-    const allowed = ['toast', 'nav:server', 'watch:changed', 'activity:changed', 'status:changed', 'update:progress'];
+    const allowed = ['toast', 'nav:server', 'watch:changed', 'activity:changed', 'status:changed', 'update:progress', 'backend:changed', 'backend:banned'];
     if (!allowed.includes(channel)) return () => {};
     const handler = (_e, payload) => fn(payload);
     ipcRenderer.on(channel, handler);

@@ -1,0 +1,11 @@
+{
+  "name": "fivem-norge-server",
+  "private": true,
+  "type": "module",
+  "description": "Backend og adminpanel for FiveM Norge Launcher – lagrer alt i data/db.json",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  }
+}

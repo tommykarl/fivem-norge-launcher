@@ -19,6 +19,7 @@ const SETTINGS_SCHEMA = {
   notifications: 'bool',
   autoUpdateCheck: 'bool',
   autoInstallUpdates: 'bool',
+  telemetry: 'bool',
   theme: ['dark', 'light', 'system'],
   accent: ['red', 'blue', 'green', 'purple', 'orange'],
 };
@@ -34,6 +35,7 @@ const SETTINGS_DEFAULT = {
   notifications: true,
   autoUpdateCheck: true,
   autoInstallUpdates: false,
+  telemetry: true, // anonym statistikk og feilrapporter til egen backend
   theme: 'dark',
   accent: 'red',
 };

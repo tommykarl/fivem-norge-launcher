@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Clock, Play, Star } from 'lucide-react';
+import { ArrowLeftRight, BadgeCheck, Clock, Play, Star } from 'lucide-react';
 import ServerIcon from './ServerIcon.jsx';
 
 export default function ServerRow({
@@ -14,7 +14,11 @@ export default function ServerRow({
       <div className="row-main">
         <ServerIcon server={s} size={48} />
         <div className="row-text">
-          <button className="row-name" onClick={onOpen} title={s.hostname || s.name}>{s.name}</button>
+          <div className="row-title">
+            <button className="row-name" onClick={onOpen} title={s.hostname || s.name}>{s.name}</button>
+            {s.verified && <BadgeCheck size={16} strokeWidth={2} className="verified" aria-label="Verifisert" />}
+            {s.featured && <span className="tag featured">Fremhevet</span>}
+          </div>
           <div className="row-sub">
             <span className="row-desc">{meta || s.desc || s.hostname}</span>
             {myTags.slice(0, 3).map((t) => <span key={`m-${t}`} className="tag mine">{t}</span>)}

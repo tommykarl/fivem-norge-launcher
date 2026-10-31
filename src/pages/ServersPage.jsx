@@ -103,7 +103,11 @@ export default function ServersPage({
     return () => window.removeEventListener('keydown', onKey);
   }, [list, sel, onOpen, onPlay]);
 
-  const hero = view === 'servers' && !query && chip === 'alle' && servers.length ? [...servers].sort((a, b) => b.clients - a.clients)[0] : null;
+  // Hero: en fremhevet server (valgt i adminpanelet) hvis det finnes, ellers den med flest spillere
+  const hero =
+    view === 'servers' && !query && chip === 'alle' && servers.length
+      ? [...servers].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || b.clients - a.clients)[0]
+      : null;
   const recentMeta = useMemo(() => new Map(activity.recent.map((r) => [r.id, r])), [activity.recent]);
 
   const needsLogin = view === 'saved' && !user;
@@ -152,13 +156,13 @@ export default function ServersPage({
       </div>
 
       {hero && (
-        <section className="hero" aria-label="Mest spilt nå">
+        <section className="hero" aria-label={hero.featured ? 'Fremhevet server' : 'Mest spilt nå'}>
           {hero.banner ? <div className="hero-img" style={{ backgroundImage: `url("${encodeURI(hero.banner)}")` }} /> : <Mountains />}
           <div className="hero-body">
             <div className="hero-left">
               <ServerIcon server={hero} size={84} radius={22} />
               <div className="hero-text">
-                <div className="eyebrow accent"><TrendingUp size={14} strokeWidth={2.2} /> Mest spilt nå</div>
+                <div className="eyebrow accent">{hero.featured ? <><Star size={14} strokeWidth={2.2} /> Fremhevet</> : <><TrendingUp size={14} strokeWidth={2.2} /> Mest spilt nå</>}</div>
                 <h2><button className="link-title" onClick={() => onOpen(hero)}>{hero.name}</button></h2>
                 <p>
                   {hero.desc ? `${hero.desc} · ` : ''}

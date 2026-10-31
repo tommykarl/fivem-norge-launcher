@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, ChevronLeft, Clock, Copy, Globe, Loader2, MessageSquare, Play, Star } from 'lucide-react';
+import { ArrowUpRight, BadgeCheck, ChevronLeft, Clock, Copy, Globe, Loader2, MessageSquare, Play, Star } from 'lucide-react';
 import ServerIcon from '../components/ServerIcon.jsx';
 import Mountains from '../components/Mountains.jsx';
 import Sparkline from '../components/Sparkline.jsx';
@@ -57,7 +57,10 @@ export default function ServerPage({
         <div className="sp-head">
           <div className="sp-icon"><ServerIcon server={s} size={112} radius={28} /></div>
           <div className="sp-title">
-            <h1>{s.name}</h1>
+            <h1>
+              {s.name}
+              {s.verified && <BadgeCheck size={26} strokeWidth={2} className="verified" aria-label="Verifisert av FiveM Norge" />}
+            </h1>
             <div className="sp-meta">
               <span className="status">
                 <span className={`dot${s.offline ? ' off' : full ? ' full' : ''}`} />

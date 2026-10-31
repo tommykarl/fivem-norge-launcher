@@ -22,6 +22,23 @@ const communities = require('./communities.cjs');
 const appctl = require('./appctl.cjs');
 const { CFX_HEADERS } = require('./cfxHttp.cjs');
 const status = require('./status.cjs');
+const backend = require('./backend.cjs');
+
+process.on('uncaughtException', (e) => {
+  console.error(e);
+  try {
+    backend.reportError(e, 'main');
+  } catch {
+    /* ignorer */
+  }
+});
+process.on('unhandledRejection', (e) => {
+  try {
+    backend.reportError(e, 'main');
+  } catch {
+    /* ignorer */
+  }
+});
 
 // Må registreres før appen er klar
 icons.registerScheme();
@@ -113,6 +130,18 @@ if (!app.requestSingleInstanceLock()) {
       },
     });
     const st = features.getSettings();
+    backend.init(process.env.BACKEND_URL, {
+      emit: (ch) => win?.webContents.send(ch),
+      telemetry: () => features.getSettings().telemetry,
+      getSessionToken: () => session?.token || null,
+      // Utestengt: logg ut av Discord i launcheren og vis beskjed
+      onBanned: (acc) => {
+        session = null;
+        communities.reset();
+        store.saveSession(null);
+        win?.webContents.send('backend:banned', acc.banReason || null);
+      },
+    });
     presence.configure(CLIENT_ID, st.rpc);
     try {
       appctl.setTray(st.tray, () => win);
@@ -261,11 +290,14 @@ ipcMain.handle('auth:session', async () => {
 ipcMain.handle('auth:login', async () => {
   session = await discord.login(CLIENT_ID, win);
   store.saveSession(session);
+  const acc = await backend.hello();
+  if (acc?.banned) throw new Error(`Kontoen din er utestengt fra FiveM Norge Launcher${acc.banReason ? `: ${acc.banReason}` : ''}`);
   return session.user;
 });
 
 ipcMain.handle('auth:logout', () => {
   session = null;
+  backend.clearAccount();
   communities.reset();
   store.saveSession(null);
   return true;
@@ -289,6 +321,14 @@ ipcMain.handle('stats:weekly', () => features.weekly());
 ipcMain.handle('notes:get', () => features.getNotes());
 ipcMain.handle('notes:set', (_e, id, name, patch) => features.setNote(String(id), String(name || ''), patch || {}));
 ipcMain.handle('history:trending', () => features.trending(5));
+
+// ---- Egen backend (kunngjøringer, serverinnstillinger, statistikk) ----
+ipcMain.handle('backend:state', () => backend.state());
+ipcMain.handle('backend:refresh', async () => {
+  await backend.refresh();
+  return backend.state();
+});
+ipcMain.on('report:error', (_e, err) => backend.reportError({ message: String(err?.message || ''), stack: String(err?.stack || '') }, 'renderer'));
 
 // ---- FiveM-status ----
 ipcMain.handle('status:get', (_e, force) => status.get(!!force));
@@ -370,6 +410,9 @@ ipcMain.on('app:quit', () => {
 });
 
 ipcMain.handle('open:external', (_e, url) => {
-  if (typeof url === 'string' && /^https:\/\//i.test(url)) return shell.openExternal(url);
+  if (typeof url !== 'string') return false;
+  // https-lenker, og egen backend (kan være http://localhost når den kjøres lokalt)
+  const own = backend.state().url;
+  if (/^https:\/\//i.test(url) || (own && (url === own || url.startsWith(`${own}/`)))) return shell.openExternal(url);
   return false;
 });
