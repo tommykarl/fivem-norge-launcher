@@ -69,3 +69,6 @@ src/
 - Favoritter lagres lokalt på PC-en (i `%APPDATA%/FiveM Norge Launcher/launcher-data.json`), knyttet til Discord-ID-en din. Vil du synke mellom PC-er, må du legge til en egen backend/database.
 - Serverlisten kommer fra FiveM sitt uoffisielle frontend-API. Hvis Cfx.re endrer formatet, er det `electron/fivem.cjs` som må oppdateres.
 - Juster `NO_NAME`-regexen i `fivem.cjs` hvis du vil fange opp flere (eller færre) servere.
+
+## Nettside
+Nettsiden ligger i `docs/index.html` (én fil, ingen bygging). Den publiseres med GitHub Pages: **Settings → Pages → Deploy from a branch → `main` / `docs`**.
