@@ -11,7 +11,9 @@
 <meta property="og:url" content="https://fivemnorge.xyz/">
 <meta name="theme-color" content="#07090E">
 <meta name="color-scheme" content="dark">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 16'%3E%3Crect width='22' height='16' rx='3' fill='%23D92B43'/%3E%3Crect x='6' width='4' height='16' fill='%23fff'/%3E%3Crect y='6' width='22' height='4' fill='%23fff'/%3E%3Crect x='7' width='2' height='16' fill='%231C3E8C'/%3E%3Crect y='7' width='22' height='2' fill='%231C3E8C'/%3E%3C/svg%3E">
+<link rel="icon" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:image" content="https://fivemnorge.xyz/logo-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Geist+Mono:wght@500&amp;display=swap" rel="stylesheet">
 <style>
@@ -42,10 +44,11 @@ button{font:inherit;cursor:pointer}
   <header style="position: relative; z-index: 3; border-bottom: 1px solid #141926; background: rgba(7,9,14,.85)">
     <div style="max-width: 1200px; margin: 0 auto; padding: 0 24px; min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap">
       <a href="#top" style="display: flex; align-items: center; gap: 12px; color: #EEF1F7; font-weight: 700; font-size: 17px; letter-spacing: -0.01em">
-        <svg width="28" height="20" viewBox="0 0 22 16" aria-hidden="true"><rect width="22" height="16" rx="3" fill="#D92B43"></rect><rect x="6" width="4" height="16" fill="#fff"></rect><rect y="6" width="22" height="4" fill="#fff"></rect><rect x="7" width="2" height="16" fill="#1C3E8C"></rect><rect y="7" width="22" height="2" fill="#1C3E8C"></rect></svg>
+        <img src="/logo-64.png" width="34" height="34" alt="" style="display: block">
         FiveM Norge
       </a>
       <nav aria-label="Hovedmeny" style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap">
+        <a class="navlink" href="#servere">Servere</a>
         <a class="navlink" href="#funksjoner">Funksjoner</a>
         <a class="navlink" href="#status">Status</a>
         <a class="navlink" href="#faq">Spørsmål</a>
@@ -72,7 +75,7 @@ button{font:inherit;cursor:pointer}
 
     <div style="position: relative; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 26px">
       <a href="#nytt" style="display: inline-flex; align-items: center; gap: 10px; height: 36px; padding: 0 6px 0 16px; border-radius: 999px; border: 1px solid #2A3348; background: rgba(15,19,29,.75); font-size: 14px; color: #C3CADB">
-        Versjon 1.4 – kunngjøringer og verifiserte servere
+        Versjon 1.5 – venner, anmeldelser og serversider
         <span style="display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 999px; background: #1A2132; color: #EEF1F7; font-size: 13px; font-weight: 600">Se hva som er nytt</span>
       </a>
       <h1 style="margin: 0; max-width: 940px; font-size: clamp(42px, 6.6vw, 84px); line-height: 1.0; font-weight: 800; letter-spacing: -0.05em">
@@ -101,7 +104,7 @@ button{font:inherit;cursor:pointer}
 
         <div style="border-radius: 20px 20px 0 0; border: 1px solid #222A3E; border-bottom: 0; background: #07090E; box-shadow: 0 40px 120px rgba(0,0,0,.6); overflow: hidden">
           <div style="height: 38px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid #141926; font-size: 12px; font-weight: 600; color: #A7B0C5">
-            <span style="display: flex; align-items: center; gap: 8px"><svg width="16" height="12" viewBox="0 0 22 16" aria-hidden="true"><rect width="22" height="16" rx="3" fill="#D92B43"></rect><rect x="6" width="4" height="16" fill="#fff"></rect><rect y="6" width="22" height="4" fill="#fff"></rect><rect x="7" width="2" height="16" fill="#1C3E8C"></rect><rect y="7" width="22" height="2" fill="#1C3E8C"></rect></svg>FiveM Norge</span>
+            <span style="display: flex; align-items: center; gap: 8px"><img src="/logo-64.png" width="16" height="16" alt="" style="display: block">FiveM Norge</span>
             <span style="display: flex; gap: 8px" aria-hidden="true"><span style="width: 10px; height: 10px; border-radius: 50%; background: #2A3348"></span><span style="width: 10px; height: 10px; border-radius: 50%; background: #2A3348"></span><span style="width: 10px; height: 10px; border-radius: 50%; background: #2A3348"></span></span>
           </div>
           <div style="display: flex; flex-wrap: wrap; min-height: 420px">
@@ -208,6 +211,38 @@ button{font:inherit;cursor:pointer}
           <div><div style="font-size: 15px; font-weight: 600">{{ f.title }}</div><div style="font-size: 13px; color: #A7B0C5">{{ f.text }}</div></div>
         </div>
       </sc-for>
+    </div>
+  </section>
+
+  <section id="servere" style="padding: 112px 24px 0">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap">
+        <div style="max-width: 640px">
+          <div style="font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #FF8F9B">Live nå</div>
+          <h2 style="margin: 14px 0 0; font-size: clamp(32px, 4vw, 50px); line-height: 1.06; font-weight: 700; letter-spacing: -0.04em">Mest spilt i Norge akkurat nå</h2>
+        </div>
+        <p style="margin: 0; max-width: 380px; font-size: 16px; line-height: 1.6; color: #A7B0C5">{{ liveSub }}</p>
+      </div>
+      <sc-if value="{{ liveEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="border: 1px dashed #2A3348; border-radius: 22px; padding: 40px 24px; text-align: center; color: #A7B0C5">Listen fylles når launcherne er i bruk. Kom tilbake om litt.</div>
+      </sc-if>
+      <ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 10px">
+        <sc-for list="{{ liveRows }}" as="s" hint-placeholder-count="6">
+          <li>
+            <a href="{{ s.href }}" class="card" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px; background: #0F131D; border: 1px solid #1A2030; color: #EEF1F7">
+              <span style="width: 26px; font-family: 'Geist Mono', monospace; font-size: 13px; color: #7F8AA3; text-align: right; flex-shrink: 0">{{ s.rank }}</span>
+              <sc-if value="{{ s.icon }}" hint-placeholder-val="{{ false }}"><img src="{{ s.icon }}" alt="" width="44" height="44" loading="lazy" style="border-radius: 12px; object-fit: cover; background: #151A27; flex-shrink: 0"></sc-if>
+              <sc-if value="{{ s.noIcon }}" hint-placeholder-val="{{ true }}"><span style="width: 44px; height: 44px; border-radius: 12px; background: {{ s.color }}; display: grid; place-items: center; font-weight: 700; flex-shrink: 0">{{ s.letter }}</span></sc-if>
+              <span style="flex: 1; min-width: 0">
+                <span style="display: flex; gap: 6px; align-items: center; min-width: 0"><span style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ s.name }}</span><sc-if value="{{ s.verified }}" hint-placeholder-val="{{ false }}"><span title="Verifisert" style="color: #3DDC97; font-size: 13px">✔</span></sc-if></span>
+                <span style="display: block; margin-top: 6px; height: 5px; border-radius: 5px; background: #1A2030; max-width: 220px"><span style="display: block; height: 5px; border-radius: 5px; width: {{ s.pct }}%; background: {{ s.bar }}"></span></span>
+                <sc-if value="{{ s.rating }}" hint-placeholder-val="{{ false }}"><span style="display: block; margin-top: 4px; font-size: 12px; color: #FFC24B">★ {{ s.rating }}</span></sc-if>
+              </span>
+              <span style="font-weight: 600; font-size: 14px; white-space: nowrap">{{ s.count }}</span>
+            </a>
+          </li>
+        </sc-for>
+      </ol>
     </div>
   </section>
 
@@ -374,7 +409,7 @@ button{font:inherit;cursor:pointer}
   <section id="nytt" style="padding: 0 24px 112px">
     <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 40px; align-items: start">
       <div style="display: flex; flex-direction: column; gap: 14px">
-        <div style="font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #FF8F9B">Nytt i 1.4</div>
+        <div style="font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #FF8F9B">Nytt i 1.5</div>
         <h2 style="margin: 0; font-size: clamp(30px, 3.6vw, 44px); line-height: 1.08; font-weight: 700; letter-spacing: -0.035em">Oppdaterer seg selv. Blir bedre hele tiden.</h2>
         <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #A7B0C5">Nye versjoner lastes ned i bakgrunnen. Du velger selv når launcheren starter på nytt.</p>
       </div>
@@ -440,7 +475,7 @@ button{font:inherit;cursor:pointer}
   <footer style="border-top: 1px solid #141926; padding: 32px 24px">
     <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; font-size: 14px; color: #7F8AA3">
       <span style="display: flex; align-items: center; gap: 10px; color: #A7B0C5; font-weight: 600">
-        <svg width="20" height="14" viewBox="0 0 22 16" aria-hidden="true"><rect width="22" height="16" rx="3" fill="#D92B43"></rect><rect x="6" width="4" height="16" fill="#fff"></rect><rect y="6" width="22" height="4" fill="#fff"></rect><rect x="7" width="2" height="16" fill="#1C3E8C"></rect><rect y="7" width="22" height="2" fill="#1C3E8C"></rect></svg>
+        <img src="/logo-64.png" width="22" height="22" alt="" style="display: block">
         FiveM Norge Launcher
       </span>
       <span style="display: flex; gap: 20px"><a href="https://github.com/tommykarl/fivem-norge-launcher" style="color: #A7B0C5">GitHub</a><a href="/admin" style="color: #A7B0C5">Admin</a></span>
@@ -471,6 +506,9 @@ const FACTS = [
 const WEEK = [0, 1.5, 0, 2.2, 0.5, 3.1, 0];
 const HOURS = [5, 4, 3, 3, 2, 2, 4, 7, 10, 14, 16, 18, 19, 20, 22, 24, 28, 35, 44, 55, 62, 60, 48, 22];
 const CHANGES = [
+  { v: '1.5.0', t: 'Venner: se hvilken server vennene dine spiller på, og bli med' },
+  { v: '1.5.0', t: 'Anmeldelser, og servereiere kan legge inn beskrivelse og lenker' },
+  { v: '1.5.0', t: 'Admin-fane i launcheren for staben, og «Nytt i versjonen» etter oppdatering' },
   { v: '1.4.3', t: 'Ny logo, og oppdateringer hentes rett fra GitHub' },
   { v: '1.4.0', t: 'Kunngjøringer fra FiveM Norge vises øverst i launcheren' },
   { v: '1.4.0', t: 'Verifiserte og fremhevede servere – merket i listen' },
@@ -526,10 +564,41 @@ const TABS = [
   { id: 'status', label: 'Status' },
 ];
 
+const COLORS = ['#8A6A12', '#7A3E1C', '#2B4A8F', '#3F6A1F', '#6A2B7A', '#8A2A2A'];
 class Component extends DCLogic {
+  liveVals() {
+    const d = this.state && this.state.live;
+    const list = (d && d.servers) || [];
+    const ago = d && d.at ? Math.max(1, Math.round((Date.now() - d.at) / 60000)) : 0;
+    return {
+      liveEmpty: !!d && list.length === 0,
+      liveSub: d && list.length ? `${d.total.toLocaleString('no')} spillere på ${d.count} norske servere · oppdatert for ${ago} min siden` : 'Spillertall fra launcherne, oppdatert hvert femte minutt.',
+      liveRows: list.slice(0, 18).map((s, i) => {
+        const full = s.max && s.clients >= s.max;
+        return {
+          rank: i + 1,
+          name: s.name,
+          href: '/server/' + s.id,
+          icon: s.iconVersion ? `https://frontend.cfx-services.net/api/servers/icon/${s.id}/${s.iconVersion}.png` : '',
+          noIcon: !s.iconVersion,
+          letter: (s.name || '?').charAt(0).toUpperCase(),
+          color: COLORS[i % COLORS.length],
+          verified: s.verified,
+          rating: s.rating ? `${String(s.rating.avg).replace('.', ',')} (${s.rating.count})` : '',
+          count: `${s.clients} / ${s.max}`,
+          pct: Math.max(3, Math.round((s.clients / (s.max || 1)) * 100)),
+          bar: full ? '#FF6B7A' : '#3DDC97',
+        };
+      }),
+    };
+  }
   constructor(props) {
     super(props);
-    this.state = { open: 0, tab: 'home', dl: { version: '1.4.3', setup: EXE_DIR, portable: EXE_DIR } };
+    fetch('/api/public/live')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && this.setState({ live: d }))
+      .catch(() => {});
+    this.state = { live: null, open: 0, tab: 'home', dl: { version: '1.5.0', setup: EXE_DIR, portable: EXE_DIR } };
     // Nyeste versjon og nedlastingslenker fra exe-mappa på GitHub
     fetch(EXE_RAW + 'latest.json?t=' + Date.now())
       .then((r) => (r.ok ? r.json() : null))
@@ -589,6 +658,7 @@ class Component extends DCLogic {
       week: WEEK.map((v, i) => ({ h: v ? Math.max(8, Math.round((v / maxW) * 100)) : 4, c: i === 5 ? '#D92B43' : v ? 'rgba(217,43,67,.55)' : '#1A2030' })),
       hours: HOURS.map((v, i) => ({ h: Math.max(4, Math.round((v / maxH) * 100)), c: i === nowH ? '#3DDC97' : 'rgba(61,220,151,.45)' })),
       dl: this.state.dl,
+      ...this.liveVals(),
       changes: CHANGES,
       faq: FAQ.map((f, i) => ({
         ...f,

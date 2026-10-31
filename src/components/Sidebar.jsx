@@ -1,4 +1,4 @@
-import { Clock, Home, LogOut, Server, Settings, Star } from 'lucide-react';
+import { Clock, Home, LogOut, Server, Settings, ShieldCheck, Star, Users } from 'lucide-react';
 import DiscordIcon from './DiscordIcon.jsx';
 import { LEVELS } from '../status.js';
 
@@ -9,14 +9,19 @@ const NAV = [
   { id: 'recent', label: 'Nylig spilt', icon: Clock, countKey: 'recent' },
 ];
 
-export default function Sidebar({ user, authBusy, onLogin, onLogout, route, go, counts, totalPlayers, updateAvailable, statusLevel }) {
+export default function Sidebar({ user, authBusy, onLogin, onLogout, route, go, counts, totalPlayers, updateAvailable, statusLevel, isStaff, showFriends }) {
   const lvl = LEVELS[statusLevel || 'unknown'];
   const active = route.name === 'server' ? route.from || 'servers' : route.name;
+  const nav = [
+    ...NAV,
+    ...(showFriends ? [{ id: 'friends', label: 'Venner', icon: Users }] : []),
+    ...(isStaff ? [{ id: 'admin', label: 'Admin', icon: ShieldCheck }] : []),
+  ];
   return (
     <aside className="sidebar">
       <nav aria-label="Hovedmeny" className="side-nav">
         <div className="eyebrow side-label">Utforsk</div>
-        {NAV.map(({ id, label, icon: Icon, countKey }) => (
+        {nav.map(({ id, label, icon: Icon, countKey }) => (
           <button
             key={id}
             className={active === id ? 'nav active' : 'nav'}

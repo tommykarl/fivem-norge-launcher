@@ -5,10 +5,11 @@ import Mountains from '../components/Mountains.jsx';
 import Sparkline from '../components/Sparkline.jsx';
 import BestTimes from '../components/BestTimes.jsx';
 import NotesCard from '../components/NotesCard.jsx';
+import ServerCommunity from '../components/ServerCommunity.jsx';
 import { api, errText, formatAgo, formatDuration } from '../api.js';
 
 export default function ServerPage({
-  server, favorite, watch, activity, onBack, backLabel, onFav, onPlay, onWatch, notify, note, allTags, onSaveNote,
+  server, favorite, watch, activity, onBack, backLabel, onFav, onPlay, onWatch, notify, note, allTags, onSaveNote, user, backendEnabled,
 }) {
   const [thr, setThr] = useState('');
   const [details, setDetails] = useState(null);
@@ -127,6 +128,7 @@ export default function ServerPage({
 
             {loading && <div className="muted-sm row-gap"><Loader2 className="spin" size={16} /> Henter detaljer…</div>}
             {err && <div className="muted-sm">{err}</div>}
+            <ServerCommunity server={s} user={user} backendEnabled={backendEnabled} notify={notify} />
           </div>
 
           <aside className="sp-side">

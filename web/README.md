@@ -6,9 +6,10 @@ Nettside, adminpanel og API for launcheren i én Cloudflare Worker.
 |---|---|
 | `https://fivemnorge.xyz/` | Nettsiden (`public/index.html`) |
 | `https://fivemnorge.xyz/admin` | Adminpanelet (innlogging med Discord) |
+| `https://fivemnorge.xyz/server/<id>` | Egen side per server: spillere nå, beskrivelse, anmeldelser og «Koble til» |
 | `https://fivemnorge.xyz/api/...` | API-et launcheren bruker |
 
-Data (brukere, servere, kunngjøringer, statistikk, feilrapporter og logg) lagres som JSON i en Durable Object hos Cloudflare. Det er gratis på Workers Free-planen.
+Data (brukere, servere, kunngjøringer, anmeldelser, venner, krav fra servereiere, statistikk, feilrapporter og logg) lagres som JSON i en Durable Object hos Cloudflare. Det er gratis på Workers Free-planen.
 
 ## Første gang
 Du trenger [Node.js](https://nodejs.org) (LTS), og domenet **fivemnorge.xyz** må være lagt til i Cloudflare-kontoen din.
@@ -31,6 +32,19 @@ Du trenger [Node.js](https://nodejs.org) (LTS), og domenet **fivemnorge.xyz** m�
 6. Åpne https://fivemnorge.xyz/admin og logg inn.
 
 Hvis publiseringen klager på at det allerede finnes en DNS-oppføring for fivemnorge.xyz, slett den gamle A- eller CNAME-oppføringen under **DNS** i Cloudflare, eller fjern domenet fra et gammelt Pages-prosjekt, og kjør `npm run deploy` igjen.
+
+## Varsler i Discord (valgfritt)
+Lag en webhook i Discord (Kanalinnstillinger → Integrasjoner → Webhooks → Ny webhook → Kopier URL) og kjør:
+```
+npm run webhook
+```
+Da postes nye kunngjøringer, utestengelser, nye feil og krav fra servereiere i kanalen.
+
+## Sikkerhetskopi
+Adminpanelet → **Sikkerhetskopi** laster ned alt som én JSON-fil, og kan gjenopprette fra en slik fil (bare eiere).
+
+## Live-listen
+Innloggede launchere sender spillertallene til de norske serverne de allerede har hentet (maks hvert 5. minutt). Nettsiden viser de mest spilte på forsiden og på `/server/<id>`.
 
 ## Endringer senere
 Endre filene og kjør `npm run deploy`. Nettsiden er `public/index.html`, adminpanelet er `src/admin.html` og serverkoden er `src/worker.js`.

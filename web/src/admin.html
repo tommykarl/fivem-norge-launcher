@@ -121,13 +121,15 @@ pre.stack { margin: 8px 0 0; padding: 12px; border-radius: 10px; background: var
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); font-weight: 600; font-size: 14px; padding: 12px 18px; border-radius: 12px; z-index: 60; box-shadow: 0 16px 40px rgba(0,0,0,.5); max-width: calc(100vw - 32px); }
 .toast.err { background: #ff8f9b; }
 @media (max-width: 700px) { main { padding: 20px 16px 40px; } .hide-sm { display: none; } }
+.spark{display:flex;gap:1px;align-items:flex-end;height:18px;margin-top:4px;width:96px}.spark i{flex:1;background:rgba(61,220,151,.55);min-height:1px;border-radius:1px}
+main a{color:inherit}
 </style>
 </head>
 <body>
 <div class="layout">
   <aside class="side">
     <div class="brand">
-      <svg width="26" height="19" viewBox="0 0 22 16" aria-hidden="true"><rect width="22" height="16" rx="3" fill="#D92B43"/><rect x="6" width="4" height="16" fill="#fff"/><rect y="6" width="22" height="4" fill="#fff"/><rect x="7" width="2" height="16" fill="#1C3E8C"/><rect y="7" width="22" height="2" fill="#1C3E8C"/></svg>
+      <img src="/logo-64.png" width="30" height="30" alt="">
       <div>FiveM Norge<small>Adminpanel</small></div>
     </div>
     <nav class="nav" aria-label="Admin-meny" id="nav"></nav>
@@ -190,8 +192,11 @@ const PAGES = [
   { id: 'users', label: 'Brukere', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8' },
   { id: 'servers', label: 'Servere', icon: 'M3 4h18v7H3zM3 13h18v7H3zM7 7.5h.01M7 16.5h.01' },
   { id: 'announcements', label: 'Kunngjøringer', icon: 'M3 11l18-8v18L3 13zM11.6 16.8a3 3 0 1 1-5.8-1.6' },
+  { id: 'claims', label: 'Servereiere', icon: 'M9 12l2 2 4-4M12 3l7 4v5c0 4.4-3 8.3-7 9-4-.7-7-4.6-7-9V7z' },
+  { id: 'reviews', label: 'Anmeldelser', icon: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z' },
   { id: 'errors', label: 'Feilrapporter', icon: 'M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z' },
   { id: 'audit', label: 'Logg', icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2' },
+  { id: 'data', label: 'Sikkerhetskopi', icon: 'M12 3v12M7 10l5 5 5-5M5 21h14' },
 ];
 const state = { me: null, page: (location.hash || '#overview').slice(1), counts: {} };
 const icon = (d, size = 18) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
@@ -200,8 +205,8 @@ const ROLE_LABEL = { owner: 'Eier', admin: 'Admin', moderator: 'Moderator', user
 
 function renderNav() {
   $('#nav').innerHTML = PAGES.map((p) => {
-    const c = p.id === 'errors' ? state.counts.errors : p.id === 'users' ? state.counts.users : null;
-    return `<button data-page="${p.id}" ${state.page === p.id ? 'aria-current="page"' : ''}>${icon(p.icon)}<span>${p.label}</span>${c != null ? `<em class="${p.id === 'errors' && c ? 'alert' : ''}">${fmtNum(c)}</em>` : ''}</button>`;
+    const c = p.id === 'errors' ? state.counts.errors : p.id === 'users' ? state.counts.users : p.id === 'claims' ? state.counts.claims || null : null;
+    return `<button data-page="${p.id}" ${state.page === p.id ? 'aria-current="page"' : ''}>${icon(p.icon)}<span>${p.label}</span>${c != null ? `<em class="${(p.id === 'errors' || p.id === 'claims') && c ? 'alert' : ''}">${fmtNum(c)}</em>` : ''}</button>`;
   }).join('');
   $('#nav').querySelectorAll('button').forEach((b) => (b.onclick = () => go(b.dataset.page)));
 }
@@ -223,7 +228,7 @@ async function render() {
   const main = $('#main');
   main.innerHTML = `<div class="empty">Laster…</div>`;
   try {
-    await ({ overview, users, servers, announcements, errors, audit: auditPage })[state.page](main);
+    await ({ overview, users, servers, announcements, claims: claimsPage, reviews: reviewsPage, errors, audit: auditPage, data: dataPage })[state.page](main);
   } catch (e) {
     main.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
   }
@@ -234,6 +239,7 @@ async function overview(main) {
   const d = await api('/overview');
   state.counts.errors = d.openErrors;
   state.counts.users = d.users.total;
+  state.counts.claims = d.pendingClaims;
   renderNav();
   const maxDay = Math.max(1, ...d.days.map((x) => x.newUsers + x.newInstalls));
   const maxV = Math.max(1, ...d.versions.map((v) => v.n));
@@ -243,6 +249,8 @@ async function overview(main) {
       <div class="kpi"><div class="l">Aktive brukere</div><div class="v">${fmtNum(d.users.active24h)}</div><div class="s">siste døgn · ${fmtNum(d.users.active7d)} siste 7 d</div></div>
       <div class="kpi"><div class="l">Installasjoner i bruk</div><div class="v">${fmtNum(d.installs.active7d)}</div><div class="s">siste 7 d · ${fmtNum(d.installs.total)} totalt</div></div>
       <div class="kpi"><div class="l">Nye brukere</div><div class="v">${fmtNum(d.users.new7d)}</div><div class="s">siste 7 d · ${fmtNum(d.users.total)} totalt</div></div>
+      <div class="kpi"><div class="l">Spillere nå</div><div class="v">${fmtNum(d.live?.players)}</div><div class="s">${fmtNum(d.live?.servers)} servere · ${d.live?.at ? ago(d.live.at) : 'ingen data ennå'}</div></div>
+      <div class="kpi ${d.pendingClaims ? 'alert' : ''}"><div class="l">Servereiere som venter</div><div class="v">${fmtNum(d.pendingClaims)}</div><div class="s">${fmtNum(d.reviews)} anmeldelser totalt</div></div>
       <div class="kpi ${d.openErrors ? 'alert' : ''}"><div class="l">Åpne feil</div><div class="v">${fmtNum(d.openErrors)}</div><div class="s">${fmtNum(d.activeAnnouncements)} aktive kunngjøringer · ${fmtNum(d.users.banned)} utestengt</div></div>
     </div>
     <div class="grid2">
@@ -359,14 +367,15 @@ async function servers(main) {
       <div class="field" style="flex:1 1 200px"><label for="sname">Navn</label><input type="text" id="sname" placeholder="Legacyrp.no" maxlength="120"></div>
       <button class="btn primary" type="submit">Legg til</button>
     </form>`}
-    ${list.length ? `<div class="tablewrap"><table class="table"><thead><tr><th>Server</th><th>Fremhevet</th><th>Verifisert</th><th>Skjult</th><th class="hide-sm">Endret</th><th></th></tr></thead><tbody>
+    ${list.length ? `<div class="tablewrap"><table class="table"><thead><tr><th>Server</th><th>Fremhevet</th><th>Verifisert</th><th>Skjult</th><th class="hide-sm">Via launcher</th><th class="hide-sm">Endret</th><th></th></tr></thead><tbody>
       ${list.map((s, i) => `<tr data-i="${i}">
-        <td><strong>${esc(s.name)}</strong><div class="muted mono">cfx.re/join/${esc(s.server_id)}</div>${s.note ? `<div class="muted">${esc(s.note)}</div>` : ''}</td>
+        <td><strong><a href="/server/${esc(s.server_id)}" target="_blank" rel="noopener">${esc(s.name)}</a></strong><div class="muted mono">cfx.re/join/${esc(s.server_id)}</div>${s.profile ? `<div class="muted">Eier: ${esc(s.profile.owner_name)}</div>` : ''}${s.rating ? `<div class="muted">★ ${String(s.rating.avg).replace('.', ',')} (${s.rating.count})</div>` : ''}${s.unmanaged ? '<div class="muted">Ingen innstillinger ennå</div>' : ''}</td>
         ${['featured', 'verified', 'hidden'].map((k) => `<td><label class="check"><input type="checkbox" data-k="${k}" ${s[k] ? 'checked' : ''} ${ro ? 'disabled' : ''}><span class="sr-only">${k}</span></label></td>`).join('')}
-        <td class="hide-sm muted">${ago(s.updated_at)} · ${esc(s.updated_by || '')}</td>
-        <td>${ro ? '' : '<button class="btn danger sm" data-del>Fjern</button>'}</td></tr>`).join('')}
+        <td class="hide-sm"><span title="Tilkoblinger fra launcheren">${fmtNum(s.stats?.last7)} siste 7 d</span>${s.stats ? `<div class="spark" aria-hidden="true">${s.stats.hours.map((h) => `<i style="height:${Math.round((h / Math.max(1, ...s.stats.hours)) * 100)}%"></i>`).join('')}</div>` : ''}</td>
+        <td class="hide-sm muted">${s.unmanaged ? '–' : `${ago(s.updated_at)} · ${esc(s.updated_by || '')}`}</td>
+        <td>${ro || s.unmanaged ? '' : '<button class="btn danger sm" data-del>Fjern</button>'}</td></tr>`).join('')}
     </tbody></table></div>` : '<div class="card empty">Ingen serverinnstillinger ennå. Legg til en server over.</div>'}
-    <p class="muted" style="margin-top:14px">Fremhevet: vises øverst og i «Mest spilt nå». Verifisert: får et merke. Skjult: vises ikke i launcherens liste.</p>`;
+    <p class="muted" style="margin-top:14px">Fremhevet: vises øverst og i «Mest spilt nå». Verifisert: får et merke. Skjult: vises ikke i launcherens liste eller på nettsiden. «Via launcher» er tilkoblinger fra launcheren; søylene viser når på døgnet (kl 00–23).</p>`;
   $('#sadd')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const raw = $('#sid').value.trim().replace(/^https?:\/\//, '');
@@ -498,6 +507,120 @@ function annDrawer(a) {
     }
   });
   $('#at').focus();
+}
+
+
+// ---------- Servereiere ----------
+let showAllClaims = false;
+async function claimsPage(main) {
+  const list = await api(`/claims${showAllClaims ? '?show=all' : ''}`);
+  const ro = !canManage();
+  main.innerHTML = `
+    <div class="head"><h1>Servereiere</h1>
+      <div class="seg" role="group" aria-label="Vis"><button data-s="open" aria-pressed="${!showAllClaims}">Venter</button><button data-s="all" aria-pressed="${showAllClaims}">Alle</button></div></div>
+    <p class="muted" style="margin-top:-12px;margin-bottom:16px">Folk som sier de eier en server. Godkjent = beskrivelse og lenker vises i launcheren og på serversiden, og serveren blir verifisert. Sjekk at de faktisk er eiere først.</p>
+    ${list.length ? list.map((c, i) => `<section class="card" style="margin-bottom:10px">
+      <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:1;min-width:0">
+          <strong><a href="/server/${esc(c.server_id)}" target="_blank" rel="noopener">${esc(c.server_name)}</a></strong> <span class="muted mono">${esc(c.server_id)}</span>
+          <div class="muted">Fra ${esc(c.user_name)} (${esc(c.user_id)}) · ${ago(c.created_at)}</div>
+          <p style="margin:10px 0 0;white-space:pre-wrap;overflow-wrap:anywhere">${esc(c.description)}</p>
+          ${c.contact ? `<p style="margin:8px 0 0"><b>Bekreftelse:</b> ${esc(c.contact)}</p>` : ''}
+          ${c.discord || c.website ? `<p class="muted" style="margin:8px 0 0">${[c.discord, c.website].filter(Boolean).map(esc).join(' · ')}</p>` : ''}
+          ${c.status !== 'pending' ? `<p class="muted" style="margin:8px 0 0">${c.status === 'approved' ? 'Godkjent' : 'Avvist'} av ${esc(c.handled_by || '')} ${ago(c.handled_at)}${c.reason ? ` – ${esc(c.reason)}` : ''}</p>` : ''}
+        </div>
+        ${c.status === 'pending' ? (ro ? '<span class="pill grey">Venter</span>' : `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary sm" data-ok="${i}">Godkjenn</button><button class="btn sm" data-no="${i}">Avvis</button></div>`) : `<span class="pill ${c.status === 'approved' ? 'ok' : 'down'}">${c.status === 'approved' ? 'Godkjent' : 'Avvist'}</span>`}
+      </div>
+      <div data-reason="${i}" hidden style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><input type="text" maxlength="300" placeholder="Hvorfor avvises det? (valgfritt)" style="flex:1 1 240px" aria-label="Årsak"><button class="btn danger sm" data-confirm="${i}">Avvis</button></div>
+    </section>`).join('') : `<div class="card empty">${showAllClaims ? 'Ingen krav ennå.' : 'Ingen krav som venter.'}</div>`}`;
+  main.querySelectorAll('[data-s]').forEach((b) => (b.onclick = () => { showAllClaims = b.dataset.s === 'all'; render(); }));
+  const decide = async (c, body) => {
+    try {
+      await api(`/claims/${c.id}`, { method: 'POST', body });
+      toast(body.approve ? 'Godkjent – serveren er verifisert' : 'Avvist');
+      render();
+    } catch (e) {
+      toast(e.message, true);
+    }
+  };
+  main.querySelectorAll('[data-ok]').forEach((b) => (b.onclick = () => decide(list[Number(b.dataset.ok)], { approve: true })));
+  main.querySelectorAll('[data-no]').forEach((b) => (b.onclick = () => {
+    const box = main.querySelector(`[data-reason="${b.dataset.no}"]`);
+    box.hidden = false;
+    box.querySelector('input').focus();
+  }));
+  main.querySelectorAll('[data-confirm]').forEach((b) => (b.onclick = () => {
+    const box = main.querySelector(`[data-reason="${b.dataset.confirm}"]`);
+    decide(list[Number(b.dataset.confirm)], { approve: false, reason: box.querySelector('input').value });
+  }));
+}
+
+// ---------- Anmeldelser ----------
+async function reviewsPage(main) {
+  const list = await api('/reviews');
+  main.innerHTML = `
+    <div class="head"><h1>Anmeldelser</h1><span class="muted">Fra innloggede spillere. Skjulte vises ikke offentlig.</span></div>
+    ${list.length ? `<div class="tablewrap"><table class="table"><thead><tr><th>Anmeldelse</th><th>Server</th><th class="hide-sm">Når</th><th></th></tr></thead><tbody>
+      ${list.map((r, i) => `<tr data-i="${i}" ${r.hidden ? 'style="opacity:.55"' : ''}>
+        <td><span style="color:#FFC24B;letter-spacing:1px">${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}</span> <strong>${esc(r.user_name)}</strong>${r.text ? `<div style="margin-top:4px;overflow-wrap:anywhere">${esc(r.text)}</div>` : ''}${r.hidden ? '<div class="muted">Skjult</div>' : ''}</td>
+        <td><a href="/server/${esc(r.server_id)}" target="_blank" rel="noopener">${esc(r.server_name)}</a></td>
+        <td class="hide-sm muted">${ago(r.updated_at)}</td>
+        <td style="white-space:nowrap"><button class="btn sm" data-h>${r.hidden ? 'Vis' : 'Skjul'}</button> <button class="btn danger sm" data-del>Slett</button></td></tr>`).join('')}
+    </tbody></table></div>` : '<div class="card empty">Ingen anmeldelser ennå.</div>'}`;
+  main.querySelectorAll('tr[data-i]').forEach((tr) => {
+    const r = list[Number(tr.dataset.i)];
+    const path = `/reviews/${encodeURIComponent(r.key)}`;
+    tr.querySelector('[data-h]').onclick = async () => {
+      try { await api(path, { method: 'POST', body: { hidden: !r.hidden } }); render(); } catch (e) { toast(e.message, true); }
+    };
+    tr.querySelector('[data-del]').onclick = async (e) => {
+      const b = e.currentTarget;
+      if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Bekreft'; return; }
+      try { await api(path, { method: 'DELETE' }); toast('Slettet'); render(); } catch (er) { toast(er.message, true); }
+    };
+  });
+}
+
+// ---------- Sikkerhetskopi ----------
+async function dataPage(main) {
+  const owner = state.me?.role === 'owner';
+  main.innerHTML = `
+    <div class="head"><h1>Sikkerhetskopi</h1></div>
+    <section class="card" style="margin-bottom:16px"><h2>Last ned alt</h2>
+      <p class="muted">Brukere, servere, kunngjøringer, anmeldelser, krav, statistikk, feilrapporter og logg som én JSON-fil.</p>
+      ${owner ? '<button class="btn primary" id="dexp">Last ned sikkerhetskopi</button>' : '<p class="muted">Bare eiere kan laste ned og gjenopprette.</p>'}</section>
+    ${owner ? `<section class="card"><h2>Gjenopprett</h2>
+      <p class="muted">Erstatter <b>all</b> data med innholdet i filen. Last ned en sikkerhetskopi først.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><label class="sr-only" for="dfile">Velg fil</label><input type="file" id="dfile" accept="application/json,.json"><button class="btn danger" id="dimp" disabled>Gjenopprett</button></div></section>` : ''}`;
+  $('#dexp')?.addEventListener('click', async () => {
+    try {
+      const data = await api('/export');
+      const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }));
+      const a = Object.assign(document.createElement('a'), { href: url, download: `fivemnorge-backup-${new Date().toISOString().slice(0, 10)}.json` });
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch (e) {
+      toast(e.message, true);
+    }
+  });
+  const file = $('#dfile');
+  if (file) {
+    file.onchange = () => ($('#dimp').disabled = !file.files.length);
+    $('#dimp').onclick = async (e) => {
+      const b = e.currentTarget;
+      if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Bekreft – erstatt alt'; return; }
+      try {
+        const data = JSON.parse(await file.files[0].text());
+        await api('/import', { method: 'POST', body: data });
+        toast('Gjenopprettet');
+        go('overview');
+      } catch (er) {
+        toast(er.message || 'Ugyldig fil', true);
+      }
+    };
+  }
 }
 
 // ---------- Feilrapporter ----------

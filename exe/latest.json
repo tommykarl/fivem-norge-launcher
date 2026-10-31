@@ -1,11 +1,11 @@
 {
-  "version": "1.4.3",
-  "setup": "FiveM-Norge-Launcher-Setup-1.4.3.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.4.3.exe",
+  "version": "1.5.0",
+  "setup": "FiveM-Norge-Launcher-Setup-1.5.0.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.5.0.exe",
   "sha256": {
-    "setup": "36f482526f7da2793371264490fa83de45a23cda846224105fce9dfa11dbd036",
-    "portable": "200e1798aeebbcba2d9adf5fbf0f79f8027d27613ca0b24647299f988488c713"
+    "setup": "ecc408e307bf7ceb0586951c560a5e21f5a282974c78aa704f2c8b64857fee82",
+    "portable": "2114de7734df0ff1adffb94f69e88cc319694fc0571612cfaefe976470fb4837"
   },
-  "notes": "Ny logo, og oppdateringer hentes nå rett fra exe-mappa på GitHub.",
-  "publishedAt": "2026-10-31T21:42:10.449Z"
+  "notes": "Nytt i 1.5.0:\n• Venner – legg til venner og se hvilken server de spiller på (du velger selv om du vil vise din)\n• Anmeldelser – gi servere stjerner og skriv hva du synes\n• Servereiere kan gjøre krav på serveren sin og legge inn beskrivelse, Discord og nettside\n• Admin-fane i launcheren for staben\n• Sikrere innlogging: Discord-tokenet sendes bare én gang\n• Ny logo",
+  "publishedAt": "2026-10-31T21:59:50.463Z"
 }

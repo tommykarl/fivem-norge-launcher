@@ -639,3 +639,61 @@ kbd { font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--text-2
 .verified { color: var(--maint-text); flex-shrink: 0; }
 .sp-title h1 .verified { vertical-align: -3px; margin-left: 8px; }
 .tag.featured { color: var(--gold-text); border-color: rgba(255, 194, 75, 0.4); background: rgba(255, 194, 75, 0.08); flex-shrink: 0; }
+
+/* ---------- Skjema (venner, anmeldelser, serverkrav, admin) ---------- */
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-2); }
+.input {
+  width: 100%; min-height: 42px; padding: 0 12px; border-radius: 11px; border: 1px solid var(--line-2);
+  background: var(--bg); color: var(--text); font: inherit; font-size: 14px; font-weight: 400; outline: none; box-sizing: border-box;
+}
+textarea.input { padding: 10px 12px; min-height: 88px; resize: vertical; line-height: 1.5; }
+.input:focus { border-color: var(--focus-line); }
+.form-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.form-row .input { flex: 1; min-width: 180px; }
+.error-text { color: var(--down-text); font-size: 13px; margin: 0; }
+
+/* Stjerner */
+.stars { display: inline-flex; gap: 2px; }
+.stars button { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 8px; color: var(--faint); }
+.stars button.on { color: var(--gold-star); }
+.stars button:hover { background: var(--hover); }
+.stars-static { color: var(--gold-star); letter-spacing: 1px; font-size: 14px; }
+.review-list { display: flex; flex-direction: column; }
+.review { padding: 12px 0; border-top: 1px solid var(--line-soft); display: flex; gap: 12px; }
+.review:first-child { border-top: 0; }
+.review img { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+.review .who { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px; }
+.review p { margin: 4px 0 0; font-size: 14px; color: var(--text-2); line-height: 1.5; }
+
+/* Venner */
+.friend { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 0; border-top: 1px solid var(--line-soft); }
+.friend:first-child { border-top: 0; }
+.friend img { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; }
+.friend .ft { flex: 1; min-width: 0; }
+.friend .ft strong { display: block; font-size: 15px; }
+.friend .ft small { color: var(--muted); font-size: 13px; }
+.friend .playing { color: var(--green-text); font-weight: 600; }
+
+/* Admin i launcheren */
+.tabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); flex-wrap: wrap; }
+.tabs button { height: 38px; padding: 0 14px; border-radius: 10px; color: var(--muted); font-size: 14px; font-weight: 600; display: inline-flex; gap: 8px; align-items: center; }
+.tabs button:hover { color: var(--text); }
+.tabs button.on { background: var(--surface-2); color: var(--text); }
+.tabs em { font-style: normal; font-size: 12px; color: var(--down-text); }
+.admin-list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); overflow: hidden; }
+.admin-item { display: flex; gap: 12px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line-soft); min-height: 56px; flex-wrap: wrap; }
+.admin-item:first-child { border-top: 0; }
+.admin-item img { width: 34px; height: 34px; border-radius: 50%; }
+.admin-item .grow { flex: 1; min-width: 200px; }
+.admin-item .grow strong { display: block; font-size: 14px; }
+.admin-item .grow small, .admin-item .grow p { color: var(--muted); font-size: 13px; margin: 2px 0 0; line-height: 1.45; overflow-wrap: anywhere; }
+.pill-role { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid var(--line-2); color: var(--muted); }
+.pill-role.owner, .pill-role.admin { color: #8FB0FF; border-color: rgba(143, 176, 255, 0.35); }
+.pill-role.moderator { color: var(--gold-text); border-color: rgba(255, 194, 75, 0.35); }
+.pill-role.banned { color: var(--down-text); border-color: rgba(255, 107, 122, 0.4); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+.kpi small { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); }
+.kpi strong { display: block; margin-top: 6px; font-size: 26px; letter-spacing: -0.02em; }
+.btn.sm { height: 32px; padding: 0 12px; font-size: 13px; border-radius: 9px; }
+.whatsnew-notes { margin: 0; white-space: pre-wrap; font-size: 15px; line-height: 1.6; color: var(--text-2); }

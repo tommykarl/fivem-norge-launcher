@@ -278,7 +278,7 @@ export default function SettingsPage({
           )}
         </Row>
         {backend?.account && ['owner', 'admin', 'moderator'].includes(backend.account.role) && (
-          <Row title="Adminpanel" desc={`Du er ${backend.account.role === 'moderator' ? 'moderator' : 'administrator'}.`}>
+          <Row title="Adminpanel" desc={`Du er ${{ owner: 'eier', admin: 'administrator', moderator: 'moderator' }[backend.account.role]}. Admin-fanen i menyen har det viktigste.`}>
             <button className="btn" onClick={() => api.openExternal(backend.adminUrl)}><ExternalLink size={16} /> Åpne adminpanel</button>
           </Row>
         )}

@@ -6,6 +6,9 @@ import CacheModal from './components/CacheModal.jsx';
 import HomePage from './pages/HomePage.jsx';
 import ServersPage from './pages/ServersPage.jsx';
 import ServerPage from './pages/ServerPage.jsx';
+import FriendsPage from './pages/FriendsPage.jsx';
+import AdminPage from './pages/AdminPage.jsx';
+import WhatsNewModal from './components/WhatsNewModal.jsx';
 import SettingsPage from './pages/SettingsPage.jsx';
 import StatusPage from './pages/StatusPage.jsx';
 import ComparePage from './pages/ComparePage.jsx';
@@ -41,6 +44,7 @@ export default function App() {
   const [statusBusy, setStatusBusy] = useState(false);
   const [focusSignal, setFocusSignal] = useState(0);
   const [iconKey, setIconKey] = useState(0);
+  const [whatsNew, setWhatsNew] = useState(null);
   const toastTimer = useRef(null);
   const mainRef = useRef(null);
 
@@ -97,6 +101,7 @@ export default function App() {
     loadNotes();
     loadBackend();
     loadStatus();
+    api.app.whatsNew?.().then((w) => w && setWhatsNew(w)).catch(() => {});
     const st = setInterval(() => loadStatus(), 3 * 60_000);
     api.settings.get().then((st) => {
       setSettings(st);
@@ -323,6 +328,7 @@ export default function App() {
     return { id: route.id, name: known?.name || route.title || route.id, clients: 0, max: 0, tags: [], offline: true };
   }, [route, servers, shownServers, favorites, activity.recent]);
 
+  const isStaff = ['owner', 'admin', 'moderator'].includes(backend.account?.role) && !backend.account?.banned;
   const counts = { servers: shownServers.length, saved: favorites.length, recent: activity.recent.length };
 
   return (
@@ -340,6 +346,8 @@ export default function App() {
           totalPlayers={totalPlayers}
           updateAvailable={!!update?.newer}
           statusLevel={status?.level}
+          isStaff={isStaff}
+          showFriends={!!backend.enabled}
         />
 
         <main className="main" ref={mainRef} key={iconKey}>
@@ -387,6 +395,20 @@ export default function App() {
               onConnectDirect={() => setModal('connect')}
             />
           )}
+
+          {route.name === 'friends' && (
+            <FriendsPage
+              user={user}
+              account={backend.account}
+              onLogin={login}
+              authBusy={authBusy}
+              onPlay={connect}
+              notify={notify}
+              onShareChanged={loadBackend}
+            />
+          )}
+
+          {route.name === 'admin' && isStaff && <AdminPage account={backend.account} adminUrl={backend.adminUrl} notify={notify} />}
 
           {route.name === 'status' && (
             <StatusPage status={status} onRefresh={() => loadStatus(true)} refreshing={statusBusy} />
@@ -445,6 +467,8 @@ export default function App() {
               note={notes[routeServer.id]}
               allTags={allTags}
               onSaveNote={(patch) => saveNote(routeServer, patch)}
+              user={user}
+              backendEnabled={!!backend.enabled}
             />
           )}
         </main>
@@ -465,6 +489,7 @@ export default function App() {
 
       {modal === 'connect' && <ConnectModal onClose={() => setModal(null)} notify={notify} onConnected={loadActivity} />}
       {modal === 'shortcuts' && <ShortcutsModal onClose={() => setModal(null)} />}
+      {whatsNew && <WhatsNewModal info={whatsNew} onClose={() => setWhatsNew(null)} />}
 
       {modal === 'cache' && (
         <CacheModal

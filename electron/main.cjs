@@ -23,6 +23,8 @@ const appctl = require('./appctl.cjs');
 const { CFX_HEADERS } = require('./cfxHttp.cjs');
 const status = require('./status.cjs');
 const backend = require('./backend.cjs');
+const { jsonFile } = require('./jsonfile.cjs');
+const versionFile = jsonFile('version.json', { last: null, notes: {} });
 
 process.on('uncaughtException', (e) => {
   console.error(e);
@@ -133,7 +135,15 @@ if (!app.requestSingleInstanceLock()) {
     backend.init(process.env.BACKEND_URL, {
       emit: (ch) => win?.webContents.send(ch),
       telemetry: () => features.getSettings().telemetry,
-      getSessionToken: () => session?.token || null,
+      getDiscordToken: () => session?.token || null,
+      getLauncherToken: () => session?.fnlToken || null,
+      setLauncherToken: (t) => {
+        if (!session) return;
+        session.fnlToken = t || null;
+        store.saveSession(session);
+      },
+      servers: () => fivem.cachedServers(),
+      activity: () => features.getActivity(),
       // Utestengt: logg ut av Discord i launcheren og vis beskjed
       onBanned: (acc) => {
         session = null;
@@ -146,7 +156,10 @@ if (!app.requestSingleInstanceLock()) {
     try {
       appctl.setTray(st.tray, () => win);
       appctl.configureTrayMenu(trayItems, (s) => connectTo(s).catch((e) => notify('Kunne ikke koble til', e.message)));
-      fivem.onList(() => refreshTray());
+      fivem.onList(() => {
+        refreshTray();
+        backend.sendSnapshot();
+      });
       appctl.applyAutostart(st.autostart);
     } catch (e) {
       console.warn('[oppstart]', e.message);
@@ -221,6 +234,7 @@ async function connectTo(server) {
   const name = String(server.name || id).slice(0, 120);
   features.addRecent({ id, name });
   features.startSession({ id, name });
+  backend.reportConnect(id);
   win?.webContents.send('activity:changed');
   refreshTray();
   await launchFiveM(`cfx.re/join/${id}`);
@@ -290,7 +304,7 @@ ipcMain.handle('auth:session', async () => {
 ipcMain.handle('auth:login', async () => {
   session = await discord.login(CLIENT_ID, win);
   store.saveSession(session);
-  const acc = await backend.hello();
+  const acc = await backend.hello(true);
   if (acc?.banned) throw new Error(`Kontoen din er utestengt fra FiveM Norge Launcher${acc.banReason ? `: ${acc.banReason}` : ''}`);
   return session.user;
 });
@@ -328,6 +342,8 @@ ipcMain.handle('backend:refresh', async () => {
   await backend.refresh();
   return backend.state();
 });
+ipcMain.handle('backend:api', (_e, method, path, body) => backend.api(method, path, body));
+ipcMain.handle('backend:share', (_e, on) => backend.setShareStatus(on));
 ipcMain.on('report:error', (_e, err) => backend.reportError({ message: String(err?.message || ''), stack: String(err?.stack || '') }, 'renderer'));
 
 // ---- FiveM-status ----
@@ -356,7 +372,35 @@ ipcMain.handle('settings:set', (_e, patch) => {
 
 // ---- Om appen / oppdateringer / data ----
 ipcMain.handle('app:info', () => appctl.info());
-ipcMain.handle('app:checkUpdate', () => appctl.checkUpdate());
+ipcMain.handle('app:checkUpdate', async () => {
+  const u = await appctl.checkUpdate();
+  if (u?.latest && u.notes) {
+    const f = versionFile.get();
+    f.notes = { ...(f.notes || {}), [u.latest]: u.notes };
+    versionFile.save();
+  }
+  return u;
+});
+// «Nytt i denne versjonen»: vises én gang etter at launcheren er oppdatert
+ipcMain.handle('app:whatsNew', async () => {
+  const f = versionFile.get();
+  const current = app.getVersion();
+  const prev = f.last;
+  if (prev === current) return null;
+  f.last = current;
+  versionFile.save(true);
+  if (!prev) return null; // første oppstart etter installasjon
+  let notes = f.notes?.[current] || '';
+  if (!notes) {
+    try {
+      const u = await appctl.checkUpdate();
+      if (u?.latest === current) notes = u.notes || '';
+    } catch {
+      /* uten nett: vis uten tekst */
+    }
+  }
+  return { version: current, previous: prev, notes };
+});
 ipcMain.handle('app:downloadUpdate', async (_e, u) => {
   const r = await appctl.downloadUpdate(u, (pct) => win?.webContents.send('update:progress', pct));
   return { version: r.version };

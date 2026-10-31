@@ -36,6 +36,8 @@ contextBridge.exposeInMainWorld('launcher', {
   backend: {
     state: () => ipcRenderer.invoke('backend:state'),
     refresh: () => ipcRenderer.invoke('backend:refresh'),
+    api: (method, path, body) => ipcRenderer.invoke('backend:api', method, path, body),
+    setShare: (on) => ipcRenderer.invoke('backend:share', on),
     reportError: (err) => ipcRenderer.send('report:error', { message: String(err?.message || err), stack: String(err?.stack || '') }),
   },
   status: {
@@ -67,6 +69,7 @@ contextBridge.exposeInMainWorld('launcher', {
   app: {
     info: () => ipcRenderer.invoke('app:info'),
     checkUpdate: () => ipcRenderer.invoke('app:checkUpdate'),
+    whatsNew: () => ipcRenderer.invoke('app:whatsNew'),
     downloadUpdate: (u) => ipcRenderer.invoke('app:downloadUpdate', u),
     installUpdate: () => ipcRenderer.invoke('app:installUpdate'),
     uninstall: () => ipcRenderer.invoke('app:uninstall'),
