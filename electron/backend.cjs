@@ -12,6 +12,25 @@ const installFile = jsonFile('install.json', { id: null });
 const CONFIG_EVERY = 5 * 60_000;
 const SNAPSHOT_EVERY = 5 * 60_000;
 const PRESENCE_EVERY = 2 * 60_000;
+const ACCOUNT_EVERY = 60_000; // roller og utestengelse synkes fra adminpanelet
+
+// Eldre backend uten roleInfo: lag den ut fra rollenavnet
+const LEGACY_ROLES = {
+  owner: { id: 'owner', name: 'Eier', color: '#8fb0ff', perms: ['users', 'announcements', 'servers', 'content', 'errors'], staff: true, manage: true },
+  admin: { id: 'admin', name: 'Admin', color: '#8fb0ff', perms: ['users', 'announcements', 'servers', 'content', 'errors'], staff: true, manage: true },
+  moderator: { id: 'moderator', name: 'Moderator', color: '#ffc24b', perms: ['users', 'announcements', 'errors'], staff: true, manage: false },
+};
+const roleInfoOf = (acc) =>
+  acc?.roleInfo && typeof acc.roleInfo === 'object'
+    ? {
+        id: String(acc.roleInfo.id || 'user'),
+        name: String(acc.roleInfo.name || 'Bruker').slice(0, 40),
+        color: /^#[0-9a-f]{6}$/i.test(acc.roleInfo.color || '') ? acc.roleInfo.color : null,
+        perms: Array.isArray(acc.roleInfo.perms) ? acc.roleInfo.perms.map(String) : [],
+        staff: !!acc.roleInfo.staff,
+        manage: !!acc.roleInfo.manage,
+      }
+    : LEGACY_ROLES[acc?.role] || { id: 'user', name: 'Bruker', color: null, perms: [], staff: false, manage: false };
 
 let base = null;
 // { emit, telemetry, getDiscordToken, getLauncherToken, setLauncherToken, onBanned, servers, activity }
@@ -84,7 +103,13 @@ async function refreshConfig(first = false) {
 
 function applyAccount(acc) {
   if (acc?.token) deps.setLauncherToken(acc.token);
-  account = acc ? { banned: !!acc.banned, banReason: acc.banReason || null, role: acc.role, user: acc.user || null, shareStatus: !!acc.shareStatus } : null;
+  const prev = account;
+  account = acc
+    ? { banned: !!acc.banned, banReason: acc.banReason || null, role: acc.role, roleInfo: roleInfoOf(acc), user: acc.user || null, shareStatus: !!acc.shareStatus }
+    : null;
+  if (prev && account && prev.roleInfo && JSON.stringify(prev.roleInfo) !== JSON.stringify(account.roleInfo)) {
+    deps.onRoleChanged?.(account.roleInfo, prev.roleInfo);
+  }
   if (account?.banned) {
     deps.setLauncherToken(null);
     deps.onBanned(account);
@@ -234,6 +259,30 @@ async function api(method, path, body) {
   }
 }
 
+// Henter rolle/utestengelse på nytt (hvert minutt og når vinduet får fokus)
+let lastSync = 0;
+async function syncAccount(force = false) {
+  const token = deps?.getLauncherToken();
+  if (!base || !token || !account) return;
+  if (!force && Date.now() - lastSync < 15_000) return;
+  lastSync = Date.now();
+  try {
+    const before = JSON.stringify(account);
+    applyAccount(await call('/api/launcher/account', { token }));
+    if (JSON.stringify(account) !== before) deps.emit('backend:changed');
+  } catch (e) {
+    if (e.status === 404) {
+      // Eldre backend uten /account: bruk /me
+      await hello(false);
+    } else if (e.status === 401) {
+      await hello(true); // nøkkelen er utløpt – logg inn på nytt med Discord-tokenet
+    } else if (e.status === 403) {
+      applyAccount({ banned: true, banReason: null });
+      deps.emit('backend:changed');
+    }
+  }
+}
+
 function init(url, d) {
   deps = d;
   base = /^https?:\/\/[^\s]+$/i.test(String(url || '').trim()) ? String(url).trim().replace(/\/+$/, '') : null;
@@ -241,6 +290,7 @@ function init(url, d) {
   refreshConfig(true);
   setInterval(() => refreshConfig(false), CONFIG_EVERY);
   setInterval(() => sendPresence(false), PRESENCE_EVERY);
+  setInterval(() => syncAccount(true), ACCOUNT_EVERY);
   setTimeout(() => hello(false).then(() => sendPresence(true)), 3_000);
 }
 
@@ -260,6 +310,7 @@ module.exports = {
   reportError,
   reportConnect,
   reportBug,
+  syncAccount,
   sendSnapshot,
   setShareStatus,
   api,

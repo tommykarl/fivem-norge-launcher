@@ -331,8 +331,8 @@ export default function SettingsPage({
             <button className="btn" onClick={onRefreshBackend}><RefreshCw size={16} /> Prøv igjen</button>
           )}
         </Row>
-        {backend?.account && ['owner', 'admin', 'moderator'].includes(backend.account.role) && (
-          <Row title="Adminpanel" desc={`Du er ${{ owner: 'eier', admin: 'administrator', moderator: 'moderator' }[backend.account.role]}. Admin-fanen i menyen har det viktigste.`}>
+        {backend?.account && !backend.account.banned && (backend.account.roleInfo?.staff ?? ['owner', 'admin', 'moderator'].includes(backend.account.role)) && (
+          <Row title="Adminpanel" desc={`Du er ${backend.account.roleInfo?.name || backend.account.role}. Rollen synkes fra adminpanelet hvert minutt. Admin-fanen i menyen har det viktigste.`}>
             <button className="btn" onClick={() => api.openExternal(backend.adminUrl)}><ExternalLink size={16} /> Åpne adminpanel</button>
           </Row>
         )}

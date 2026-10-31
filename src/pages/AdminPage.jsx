@@ -21,37 +21,53 @@ function ReasonAction({ label, confirmLabel, placeholder, onConfirm, className =
   );
 }
 
-function RolePill({ u }) {
+// Roller fra adminpanelet på nettsiden (egne roller med navn og farge)
+export function RoleBadge({ name, color, className = '' }) {
+  return (
+    <span className={`pill-role ${className}`} style={color ? { color, borderColor: `${color}59`, background: `${color}14` } : undefined}>
+      {name}
+    </span>
+  );
+}
+function RolePill({ u, roles }) {
   if (u.banned) return <span className="pill-role banned">Utestengt</span>;
-  const r = u.owner ? 'owner' : u.role;
-  return <span className={`pill-role ${r}`}>{ROLE_LABEL[r] || r}</span>;
+  if (u.owner) return <RoleBadge name="Eier" color="#8fb0ff" />;
+  const r = roles?.find((x) => x.id === u.role);
+  return r ? <RoleBadge name={r.name} color={r.color} /> : <span className={`pill-role ${u.role}`}>{ROLE_LABEL[u.role] || u.role}</span>;
 }
 
 export default function AdminPage({ account, adminUrl, notify }) {
   const [tab, setTab] = useState('overview');
   const [ov, setOv] = useState(null);
   const role = account?.role;
-  const canManage = role === 'owner' || role === 'admin';
+  const info = account?.roleInfo || { name: ROLE_LABEL[role] || role, perms: [], manage: role === 'owner' || role === 'admin' };
+  const canManage = !!info.manage;
+  const perms = new Set(info.perms || []);
+  const has = (p) => canManage || perms.has(p);
 
   const loadOv = useCallback(() => call('GET', '/overview').then(setOv).catch((e) => notify(errText(e))), [notify]);
   useEffect(() => {
     loadOv();
   }, [loadOv]);
 
+  // Fanene følger tilgangene rollen har fått i adminpanelet
   const TABS = [
-    ['overview', 'Oversikt'],
-    ['users', 'Brukere'],
-    ['announcements', 'Kunngjøringer'],
-    ['claims', 'Servereiere', ov?.pendingClaims],
-    ['reviews', 'Anmeldelser'],
-    ['errors', 'Feil', ov?.openErrors],
-  ];
+    ['overview', 'Oversikt', null, true],
+    ['users', 'Brukere', null, has('users') || canManage],
+    ['announcements', 'Kunngjøringer', null, has('announcements')],
+    ['claims', 'Servereiere', ov?.pendingClaims, has('servers')],
+    ['reviews', 'Anmeldelser', null, has('content') || has('servers')],
+    ['errors', 'Feil', ov?.openErrors, has('errors')],
+  ].filter((t) => t[3]);
+  useEffect(() => {
+    if (!TABS.some((t) => t[0] === tab)) setTab('overview');
+  });
 
   return (
     <div className="page">
       <div className="page-head">
         <h1>Admin</h1>
-        <span className="muted-sm">Du er {ROLE_LABEL[role]?.toLowerCase() || role}</span>
+        <span className="row-gap muted-sm">Du er <RoleBadge name={info.name} color={info.color} /></span>
         {adminUrl && (
           <button className="btn ghost sm" style={{ marginLeft: 'auto' }} onClick={() => api.openExternal(adminUrl)}>
             <ExternalLink size={14} /> Fullt adminpanel
@@ -67,7 +83,7 @@ export default function AdminPage({ account, adminUrl, notify }) {
         ))}
       </div>
       {tab === 'overview' && <Overview ov={ov} reload={loadOv} />}
-      {tab === 'users' && <Users notify={notify} role={role} canManage={canManage} />}
+      {tab === 'users' && <Users notify={notify} role={role} canManage={canManage} canBan={has('users')} />}
       {tab === 'announcements' && <Announcements notify={notify} />}
       {tab === 'claims' && <Claims notify={notify} canManage={canManage} onChange={loadOv} />}
       {tab === 'reviews' && <Reviews notify={notify} />}
@@ -108,7 +124,11 @@ function Overview({ ov, reload }) {
   );
 }
 
-function Users({ notify, role, canManage }) {
+function Users({ notify, role, canManage, canBan }) {
+  const [roles, setRoles] = useState(null);
+  useEffect(() => {
+    call('GET', '/roles').then(setRoles).catch(() => setRoles(null));
+  }, []);
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState('all');
   const [list, setList] = useState(null);
@@ -148,18 +168,18 @@ function Users({ notify, role, canManage }) {
           <div className="admin-item" key={u.id}>
             <img src={u.avatar} alt="" />
             <div className="grow">
-              <strong>{u.display_name || u.username} <RolePill u={u} /></strong>
+              <strong>{u.display_name || u.username} <RolePill u={u} roles={roles} /></strong>
               <small>@{u.username} · {u.id} · sist sett {formatAgo(u.last_seen)}{u.version ? ` · v${u.version}` : ''}{u.ban_reason ? ` · Årsak: ${u.ban_reason}` : ''}</small>
             </div>
             {!u.owner && canManage && (
               <select className="input" style={{ width: 140, minHeight: 32 }} value={u.role} aria-label="Rolle" onChange={(e) => update(u, { role: e.target.value }, 'Rollen er endret')}>
                 <option value="user">Bruker</option>
-                <option value="moderator">Moderator</option>
-                {role === 'owner' && <option value="admin">Admin</option>}
-                {role !== 'owner' && u.role === 'admin' && <option value="admin">Admin</option>}
+                {(roles || [{ id: 'moderator', name: 'Moderator' }, { id: 'admin', name: 'Admin' }])
+                  .filter((r) => r.id !== 'admin' || role === 'owner' || u.role === 'admin')
+                  .map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
             )}
-            {!u.owner && (u.banned ? (
+            {!u.owner && canBan && (u.banned ? (
               <button className="btn sm ghost" onClick={() => update(u, { banned: false }, 'Utestengelsen er opphevet')}>Opphev</button>
             ) : (
               <ReasonAction label="Utesteng" confirmLabel="Utesteng" placeholder="Årsak (valgfritt)" onConfirm={(reason) => update(u, { banned: true, banReason: reason }, `${u.display_name || u.username} er utestengt`)} />

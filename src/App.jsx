@@ -328,7 +328,8 @@ export default function App() {
     return { id: route.id, name: known?.name || route.title || route.id, clients: 0, max: 0, tags: [], offline: true };
   }, [route, servers, shownServers, favorites, activity.recent]);
 
-  const isStaff = ['owner', 'admin', 'moderator'].includes(backend.account?.role) && !backend.account?.banned;
+  // Rolle synkes fra adminpanelet på nettsiden (roleInfo.staff = rollen har minst én tilgang)
+  const isStaff = !backend.account?.banned && (backend.account?.roleInfo ? !!backend.account.roleInfo.staff : ['owner', 'admin', 'moderator'].includes(backend.account?.role));
   const counts = { servers: shownServers.length, saved: favorites.length, recent: activity.recent.length };
 
   return (
@@ -347,6 +348,7 @@ export default function App() {
           updateAvailable={!!update?.newer}
           statusLevel={status?.level}
           isStaff={isStaff}
+          roleInfo={backend.account?.banned ? null : backend.account?.roleInfo}
           showFriends={!!backend.enabled}
         />
 
@@ -408,6 +410,9 @@ export default function App() {
             />
           )}
 
+          {route.name === 'admin' && !isStaff && (
+            <div className="page"><div className="empty"><p>Du har ikke lenger tilgang til admin. Rollen din er endret i adminpanelet.</p></div></div>
+          )}
           {route.name === 'admin' && isStaff && <AdminPage account={backend.account} adminUrl={backend.adminUrl} notify={notify} />}
 
           {route.name === 'status' && (

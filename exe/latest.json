@@ -1,11 +1,11 @@
 {
-  "version": "1.5.2",
-  "setup": "FiveM-Norge-Launcher-Setup-1.5.2.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.5.2.exe",
+  "version": "1.5.3",
+  "setup": "FiveM-Norge-Launcher-Setup-1.5.3.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.5.3.exe",
   "sha256": {
-    "setup": "e7ee55af0c31a599b99403cdb93f7347dc296ba559c93a89a069f2482b357a96",
-    "portable": "3b0746693a809f46226a9bcb2f06c8ba705aee7ac82991b6002c2e3ccf1a26b4"
+    "setup": "bcd1c8dceb3fce992d783bf038ef9c2944b0b47f2926dc4e4b4a9129075f2b8b",
+    "portable": "cec69d4ac78a5b0473b2d396a660ce35da3fe6962245a5891b5deb8314505d76"
   },
-  "notes": "Nytt: Meld fra om feil rett fra launcheren under Innstillinger. Staben ser rapporten med en gang.",
-  "publishedAt": "2026-10-31T23:14:40.487Z"
+  "notes": "Rollen din synkes nå fra adminpanelet: endringer slår inn i løpet av et minutt, uten omstart. Egne roller vises med navn og farge.",
+  "publishedAt": "2026-10-31T23:32:22.827Z"
 }

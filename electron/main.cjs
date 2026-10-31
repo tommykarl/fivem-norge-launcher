@@ -77,6 +77,8 @@ function createWindow() {
   });
   // Med systemstatusfelt på skjuler lukk-knappen vinduet i stedet for å avslutte,
   // så varsler og kø fortsetter å virke.
+  // Roller kan ha blitt endret i adminpanelet mens vinduet var i bakgrunnen
+  win.on('focus', () => backend.syncAccount(false));
   win.on('close', (e) => {
     if (!quitting && appctl.hasTray()) {
       e.preventDefault();
@@ -141,6 +143,11 @@ if (!app.requestSingleInstanceLock()) {
         if (!session) return;
         session.fnlToken = t || null;
         store.saveSession(session);
+      },
+      onRoleChanged: (now, before) => {
+        if (now.staff && !before.staff) notify('Du har fått en ny rolle', `Du er nå ${now.name} i FiveM Norge. Admin-fanen ligger i menyen.`);
+        else if (!now.staff && before.staff) notify('Rollen din er endret', `Du er nå ${now.name} i FiveM Norge.`);
+        else win?.webContents.send('toast', `Rollen din er nå ${now.name}`);
       },
       servers: () => fivem.cachedServers(),
       activity: () => features.getActivity(),

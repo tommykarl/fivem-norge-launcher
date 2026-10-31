@@ -9,7 +9,7 @@ const NAV = [
   { id: 'recent', label: 'Nylig spilt', icon: Clock, countKey: 'recent' },
 ];
 
-export default function Sidebar({ user, authBusy, onLogin, onLogout, route, go, counts, totalPlayers, updateAvailable, statusLevel, isStaff, showFriends }) {
+export default function Sidebar({ user, authBusy, onLogin, onLogout, route, go, counts, totalPlayers, updateAvailable, statusLevel, isStaff, showFriends, roleInfo }) {
   const lvl = LEVELS[statusLevel || 'unknown'];
   const active = route.name === 'server' ? route.from || 'servers' : route.name;
   const nav = [
@@ -76,7 +76,11 @@ export default function Sidebar({ user, authBusy, onLogin, onLogout, route, go, 
             <img src={user.avatar} alt="" />
             <div className="who">
               <strong>{user.displayName}</strong>
-              <small>Discord tilkoblet</small>
+              {roleInfo && roleInfo.id !== 'user' ? (
+                <small className="role-tag" style={roleInfo.color ? { color: roleInfo.color } : undefined}>{roleInfo.name}</small>
+              ) : (
+                <small>Discord tilkoblet</small>
+              )}
             </div>
             <button className="icon-btn" onClick={onLogout} aria-label="Logg ut" title="Logg ut">
               <LogOut size={16} />
