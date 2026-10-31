@@ -1,11 +1,11 @@
 {
-  "version": "1.5.1",
-  "setup": "FiveM-Norge-Launcher-Setup-1.5.1.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.5.1.exe",
+  "version": "1.5.2",
+  "setup": "FiveM-Norge-Launcher-Setup-1.5.2.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.5.2.exe",
   "sha256": {
-    "setup": "76bf8a9246c3e598cadc9b88e72d15364ddf150e1a205c8424cb0072c26dfdb2",
-    "portable": "030ab7e6637b06ceb625b83fd8ebf76e841c09d6e00d63c742c72e4ef89effe0"
+    "setup": "e7ee55af0c31a599b99403cdb93f7347dc296ba559c93a89a069f2482b357a96",
+    "portable": "3b0746693a809f46226a9bcb2f06c8ba705aee7ac82991b6002c2e3ccf1a26b4"
   },
-  "notes": "Serverlogoene er tilbake: de hentes nå fra FiveM sin nye logoadresse (icon_url).",
-  "publishedAt": "2026-10-31T22:39:32.232Z"
+  "notes": "Nytt: Meld fra om feil rett fra launcheren under Innstillinger. Staben ser rapporten med en gang.",
+  "publishedAt": "2026-10-31T23:14:40.487Z"
 }

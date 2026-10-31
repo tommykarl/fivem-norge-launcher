@@ -339,8 +339,16 @@ function Errors({ notify, onChange }) {
       {list?.map((e) => (
         <div className="admin-item" key={e.id}>
           <div className="grow">
-            <strong>{e.message}</strong>
-            <small>v{e.version || '?'} · {e.count} ganger på {e.installs} PC-er · sist {formatAgo(e.last_seen)}</small>
+            <strong>{e.kind === 'user' && <span className="pill-role admin" style={{ marginRight: 6 }}>Fra bruker</span>}{e.message}</strong>
+            {e.kind === 'user' ? (
+              <>
+                <small>{e.user_name || 'Ikke innlogget'}{e.contact ? ` · ${e.contact}` : ''} · v{e.version || '?'} · {formatAgo(e.first_seen)}</small>
+                <p style={{ whiteSpace: 'pre-wrap' }}>{e.stack}</p>
+                {e.system && <small>{Object.entries(e.system).map(([k, v]) => `${k}: ${v}`).join(' · ')}</small>}
+              </>
+            ) : (
+              <small>v{e.version || '?'} · {e.count} ganger på {e.installs} PC-er · sist {formatAgo(e.last_seen)}</small>
+            )}
           </div>
           <button className="btn sm ghost" onClick={() => resolve(e)}><Check size={14} /> Løst</button>
         </div>

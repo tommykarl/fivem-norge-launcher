@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  AlertTriangle, Bell, Bug, Cloud, ExternalLink, Database, Download, FolderOpen, Info, Keyboard, Loader2, LogOut, Monitor, Palette, RefreshCw, RotateCcw, Server, Trash2,
+  AlertTriangle, Bell, Bug, MessageSquareWarning, Send, Cloud, ExternalLink, Database, Download, FolderOpen, Info, Keyboard, Loader2, LogOut, Monitor, Palette, RefreshCw, RotateCcw, Server, Trash2,
 } from 'lucide-react';
 import { ShortcutList } from '../components/ShortcutsModal.jsx';
 import DiscordIcon from '../components/DiscordIcon.jsx';
@@ -58,6 +58,60 @@ function Section({ icon: Icon, title, children }) {
       <h2><Icon size={18} strokeWidth={1.8} /> {title}</h2>
       <div className="set-card">{children}</div>
     </section>
+  );
+}
+
+// Brukeren melder fra om en feil. Havner under «Feil» i adminpanelet (merket «Fra bruker»).
+function BugReport({ user, backend, notify }) {
+  const empty = { title: '', description: '', contact: '', includeSystem: true };
+  const [f, setF] = useState(empty);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+  const [sent, setSent] = useState(null);
+  const set = (k) => (e) => setF((cur) => ({ ...cur, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
+  const submit = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    setErr(null);
+    try {
+      const r = await api.backend.reportBug(f);
+      setSent(r.id);
+      setF(empty);
+      notify('Takk! Feilen er sendt til FiveM Norge.');
+    } catch (e2) {
+      setErr(errText(e2));
+    } finally {
+      setBusy(false);
+    }
+  };
+  if (!backend?.enabled) {
+    return <div className="set-row"><div className="set-text"><div className="set-desc">Feilmeldinger krever kontakt med fivemnorge.xyz.</div></div></div>;
+  }
+  return (
+    <form className="set-row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 12 }} onSubmit={submit}>
+      <div className="set-text" style={{ flex: 'none' }}>
+        <div className="set-title">Rapporter en feil</div>
+        <div className="set-desc">Noe som ikke virker? Beskriv det, så ser staben på det.{user ? ` Sendes som ${user.displayName}.` : ' Du er ikke innlogget, så rapporten sendes uten navn.'}</div>
+      </div>
+      <label className="field">Hva gjelder det?
+        <input className="input" required minLength={5} maxLength={140} value={f.title} onChange={set('title')} placeholder="F.eks. «Logoene vises ikke» eller «Køen kobler ikke til»" />
+      </label>
+      <label className="field">Hva skjedde?
+        <textarea className="input" required minLength={10} maxLength={4000} value={f.description} onChange={set('description')} placeholder="Hva gjorde du, hva forventet du, og hva skjedde i stedet? Ta med feilmeldingen hvis du fikk en." />
+      </label>
+      <label className="field">Kontakt (valgfritt)
+        <input className="input" maxLength={120} value={f.contact} onChange={set('contact')} placeholder="Discord-brukernavn eller e-post, hvis vi kan spørre deg om mer" />
+      </label>
+      <label className="check" style={{ fontWeight: 400 }}>
+        <input type="checkbox" checked={f.includeSystem} onChange={set('includeSystem')} />
+        <span>Legg ved systeminfo (launcherversjon, Windows-versjon, minne og om FiveM kjører)</span>
+      </label>
+      {err && <p className="error-text" role="alert">{err}</p>}
+      {sent && <p className="muted-sm" role="status">Sendt som feil #{sent}. Takk!</p>}
+      <div><button className="btn play" disabled={busy || f.title.trim().length < 5 || f.description.trim().length < 10}>
+        {busy ? <Loader2 size={16} className="spin" /> : <Send size={16} />} Send
+      </button></div>
+    </form>
   );
 }
 
@@ -291,6 +345,10 @@ export default function SettingsPage({
         <Row title="Vis hurtigtaster hvor som helst" desc="Trykk ? (spørsmålstegn) når du ikke skriver i et felt.">
           <button className="btn" onClick={onShowShortcuts}><Keyboard size={16} /> Vis</button>
         </Row>
+      </Section>
+
+      <Section icon={MessageSquareWarning} title="Meld fra om feil">
+        <BugReport user={user} backend={backend} notify={notify} />
       </Section>
 
       <Section icon={Bug} title="Feilsøking">

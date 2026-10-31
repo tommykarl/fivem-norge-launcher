@@ -344,6 +344,21 @@ ipcMain.handle('backend:refresh', async () => {
 });
 ipcMain.handle('backend:api', (_e, method, path, body) => backend.api(method, path, body));
 ipcMain.handle('backend:share', (_e, on) => backend.setShareStatus(on));
+ipcMain.handle('backend:reportBug', (_e, r) => {
+  const os = require('os');
+  const system = r?.includeSystem
+    ? {
+        launcher: app.getVersion(),
+        windows: `${os.version?.() || os.type()} ${os.release()}`,
+        arkitektur: process.arch,
+        electron: process.versions.electron,
+        minne: `${Math.round(os.totalmem() / 1024 ** 3)} GB`,
+        portabel: process.env.PORTABLE_EXECUTABLE_DIR ? 'ja' : 'nei',
+        fivem_kjører: String(features.getActivity().active ? 'ja' : 'nei'),
+      }
+    : null;
+  return backend.reportBug({ title: String(r?.title || ''), description: String(r?.description || ''), contact: String(r?.contact || ''), system });
+});
 ipcMain.on('report:error', (_e, err) => backend.reportError({ message: String(err?.message || ''), stack: String(err?.stack || '') }, 'renderer'));
 
 // ---- FiveM-status ----

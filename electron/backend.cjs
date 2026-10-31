@@ -142,6 +142,18 @@ function reportError(err, source = 'main') {
   }).catch(() => {});
 }
 
+// Feilmelding skrevet av brukeren (Innstillinger → Rapporter en feil). Sendes alltid –
+// brukeren ber selv om det. Systeminfo bare hvis de har krysset av for det.
+async function reportBug({ title, description, contact, system }) {
+  if (!base) throw new Error('Ikke koblet til fivemnorge.xyz – prøv igjen senere');
+  const token = deps.getLauncherToken();
+  return call('/api/launcher/report', {
+    method: 'POST',
+    token: token || undefined,
+    body: { installId: installId(), version: app.getVersion(), title, description, contact, system: system || null },
+  });
+}
+
 // Tilkoblinger via launcheren (anonymt, for statistikk per server)
 function reportConnect(serverId) {
   if (!base || !deps?.telemetry() || !/^[a-z0-9]{4,10}$/i.test(serverId || '')) return;
@@ -247,6 +259,7 @@ module.exports = {
   hello,
   reportError,
   reportConnect,
+  reportBug,
   sendSnapshot,
   setShareStatus,
   api,

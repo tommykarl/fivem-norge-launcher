@@ -40,6 +40,9 @@ npm run webhook
 ```
 Da postes nye kunngjøringer, utestengelser, nye feil og krav fra servereiere i kanalen.
 
+## Feilmeldinger fra brukere
+Brukere kan melde fra om feil i launcheren under **Innstillinger → Meld fra om feil**. De havner under **Feilrapporter** i adminpanelet (og «Feil» i admin-fanen i launcheren), merket «Fra bruker». Maks 5 rapporter i timen per PC.
+
 ## Sikkerhetskopi
 Adminpanelet → **Sikkerhetskopi** laster ned alt som én JSON-fil, og kan gjenopprette fra en slik fil (bare eiere).
 

@@ -38,6 +38,7 @@ contextBridge.exposeInMainWorld('launcher', {
     refresh: () => ipcRenderer.invoke('backend:refresh'),
     api: (method, path, body) => ipcRenderer.invoke('backend:api', method, path, body),
     setShare: (on) => ipcRenderer.invoke('backend:share', on),
+    reportBug: (report) => ipcRenderer.invoke('backend:reportBug', report),
     reportError: (err) => ipcRenderer.send('report:error', { message: String(err?.message || err), stack: String(err?.stack || '') }),
   },
   status: {

@@ -378,7 +378,7 @@ export class Store {
       this.mark('seq');
       errors[hash] = { id: this.db.seq.error, hash, version, message, stack: str(b.stack, 4000), count: 1, installs: 1, last_install: b.installId, first_seen: t, last_seen: t, resolved: 0 };
       this.notify(`🐞 Ny feil i launcher ${version || '?'}: \`${message.slice(0, 300)}\``);
-      const all = Object.values(errors);
+      const all = Object.values(errors).filter((x) => x.kind !== 'user' || x.resolved);
       if (all.length > 500) {
         for (const x of all.sort((a, z) => a.last_seen - z.last_seen).slice(0, all.length - 500)) {
           delete errors[x.hash];
@@ -489,6 +489,52 @@ export class Store {
       .slice(0, 50)
       .map((x) => ({ ...x, icon: iconOf(x), verified: !!this.db.servers[x.id]?.verified, featured: !!this.db.servers[x.id]?.featured, rating: this.rating(x.id) }));
     return { at: this.db.live.at, total: this.db.live.total || 0, count: this.db.live.servers.length, servers };
+  }
+
+  // ---------- Feilmeldinger fra brukere (Innstillinger → Rapporter en feil) ----------
+  async launcherReport(req) {
+    const b = await readBody(req, 30_000);
+    const installId = UUID_RE.test(b.installId || '') ? b.installId : null;
+    const title = str(String(b.title || '').trim(), 140);
+    const description = str(String(b.description || '').trim(), 4000);
+    if (!title || title.length < 5) throw new HttpError(400, 'Skriv en kort tittel (minst 5 tegn)');
+    if (!description || description.length < 10) throw new HttpError(400, 'Beskriv hva som skjedde (minst 10 tegn)');
+    // Maks 5 rapporter i timen per PC/IP
+    const key = installId || req.headers.get('cf-connecting-ip') || '?';
+    const t = now();
+    this.reportBuckets = this.reportBuckets || new Map();
+    const hits = (this.reportBuckets.get(key) || []).filter((x) => t - x < 3600_000);
+    if (hits.length >= 5) throw new HttpError(429, 'Du har sendt mange rapporter den siste timen. Prøv igjen senere.');
+    hits.push(t);
+    this.reportBuckets.set(key, hits);
+    const u = await this.launcherUser(req, false).catch(() => null);
+    const system = b.system && typeof b.system === 'object'
+      ? Object.fromEntries(Object.entries(b.system).slice(0, 12).map(([k, v]) => [str(k, 30), str(String(v), 200)]))
+      : null;
+    this.db.seq.error++;
+    this.mark('seq');
+    const hash = `user-${this.db.seq.error}`;
+    this.db.errors[hash] = {
+      id: this.db.seq.error,
+      hash,
+      kind: 'user',
+      version: str(b.version, 20),
+      message: title,
+      stack: description,
+      system,
+      contact: str(String(b.contact || '').trim(), 120) || null,
+      user_id: u?.id || null,
+      user_name: u ? u.display_name || u.username : null,
+      count: 1,
+      installs: 1,
+      last_install: installId,
+      first_seen: t,
+      last_seen: t,
+      resolved: 0,
+    };
+    this.mark('errors', hash);
+    this.notify(`🙋 Ny feilmelding fra ${u ? `**${u.display_name || u.username}**` : 'en bruker'} (v${b.version || '?'}): **${title}**\n${description.slice(0, 500)}`);
+    return { ok: true, id: this.db.seq.error };
   }
 
   // ---------- Statistikk per server (tilkoblinger via launcheren) ----------
@@ -764,6 +810,7 @@ export class Store {
         },
         installs: { active7d: cnt(installs, (x) => x.last_seen > t - 7 * DAY), active30d: cnt(installs, (x) => x.last_seen > t - 30 * DAY), total: installs.length },
         openErrors: cnt(Object.values(db.errors), (e) => !e.resolved),
+        openUserReports: cnt(Object.values(db.errors), (e) => !e.resolved && e.kind === 'user'),
         activeAnnouncements: cnt(db.announcements, (a) => a.active),
         pendingClaims: cnt(Object.values(db.claims), (c) => c.status === 'pending'),
         reviews: Object.keys(db.reviews).length,
@@ -912,7 +959,10 @@ export class Store {
     // --- Feilrapporter ---
     if (p === '/errors' && m === 'GET') {
       const all = url.searchParams.get('show') === 'all';
-      return Object.values(db.errors).filter((e) => all || !e.resolved).sort((a, b) => b.last_seen - a.last_seen).slice(0, 200);
+      const kind = url.searchParams.get('kind');
+      return Object.values(db.errors)
+        .filter((e) => all || !e.resolved)
+        .filter((e) => !kind || (kind === 'user' ? e.kind === 'user' : e.kind !== 'user')).sort((a, b) => b.last_seen - a.last_seen).slice(0, 200);
     }
     const errMatch = p.match(/^\/errors\/(\d+)$/);
     if (errMatch && m === 'POST') {
@@ -1066,6 +1116,7 @@ export class Store {
       if (p === '/api/launcher/ping' && req.method === 'POST') return this.rateLimit(req), send(200, await this.launcherPing(req), CORS);
       if (p === '/api/launcher/hello' && req.method === 'POST') return this.rateLimit(req), send(200, await this.launcherHello(req), CORS);
       if (p === '/api/launcher/error' && req.method === 'POST') return this.rateLimit(req), send(200, await this.launcherError(req), CORS);
+      if (p === '/api/launcher/report' && req.method === 'POST') return this.rateLimit(req), send(200, await this.launcherReport(req), CORS);
       if (p === '/api/launcher/login' && req.method === 'POST') return this.rateLimit(req), send(200, await this.launcherLogin(req), CORS);
       if (p === '/api/launcher/me' && req.method === 'POST') return this.rateLimit(req), send(200, await this.launcherMe(req), CORS);
       if (p === '/api/launcher/snapshot' && req.method === 'POST') return this.rateLimit(req), send(200, await this.launcherSnapshot(req), CORS);
