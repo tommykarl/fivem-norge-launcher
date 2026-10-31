@@ -318,17 +318,17 @@ export default function SettingsPage({
             {iconDiag.map((d) => (
               <div key={d.id} className="diag-server">
                 <div className="diag-title">
-                  {d.iconVersion ? (
-                    <img src={`https://frontend.cfx-services.net/api/servers/icon/${d.id}/${d.iconVersion}.png`} alt="" width="32" height="32" />
+                  {d.iconUrl || d.iconVersion ? (
+                    <img src={d.iconUrl || `https://frontend.cfx-services.net/api/servers/icon/${d.id}/${d.iconVersion}.png`} alt="" width="32" height="32" />
                   ) : null}
                   <strong>{d.name}</strong>
-                  <span className="mono muted-sm">{d.id} · iconVersion {d.iconVersion}</span>
+                  <span className="mono muted-sm">{d.id} · {d.iconUrl ? 'icon_url' : `iconVersion ${d.iconVersion}`}</span>
                 </div>
-                {d.iconVersion === 0 && <div className="muted-sm">Serveren oppgir ingen logo (iconVersion 0).</div>}
+                {!d.iconUrl && !d.iconVersion && <div className="muted-sm">Serveren oppgir ingen logo.</div>}
                 {d.results.map((r, i) => (
                   <div key={i} className="diag-line mono">
                     <span className={r.status === 200 ? 'ok' : 'bad'}>{r.status ?? 'feil'}</span>
-                    <span>{r.via}</span>
+                    <span>{r.via || 'direkte'}</span>
                     <span title={r.url}>{r.url.replace('https://', '').replace(/\/api\/servers\/icon.*/, '')}</span>
                     <span>{r.error || `${r.type || '–'} · ${r.bytes} B`}</span>
                   </div>

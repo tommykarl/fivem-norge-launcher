@@ -76,8 +76,14 @@ function isNorwegian(d) {
   return NO_NAME.test(clean(d.hostname)) || NO_NAME.test(clean(vars.sv_projectName));
 }
 
+// Siden oktober 2026 publiserer FiveM logoen som en adresse i server-varen «icon_url»
+// (https://cfx-server-metadata.cfx-services.net/images/<guid>, WebP). iconVersion brukes ikke lenger.
+const ICON_URL_RE = /^https:\/\/cfx-server-metadata\.cfx-services\.net\/images\/[0-9a-f-]{16,64}$/i;
+const iconUrlOf = (vars) => (ICON_URL_RE.test(String(vars?.icon_url || '').trim()) ? String(vars.icon_url).trim() : null);
+
 function mapServer(id, d) {
   const vars = d.vars || {};
+  const iconUrl = iconUrlOf(vars);
   return {
     id,
     name: clean(vars.sv_projectName || d.hostname) || id,
@@ -92,8 +98,11 @@ function mapServer(id, d) {
       .filter(Boolean)
       .slice(0, 10),
     iconVersion: d.iconVersion || 0,
+    iconUrl,
     // iconVersion 0 = serveren har ingen egen logo (da vises bokstavikonet uten å spørre API-et)
-    icons: d.iconVersion
+    icons: iconUrl
+      ? [iconUrl]
+      : d.iconVersion
       ? [
           // Lastes direkte av Chromium (Origin/Referer legges på i main.cjs), som på servers.fivem.net
           `${CFX_API}/icon/${id}/${d.iconVersion}.png`,
@@ -221,4 +230,4 @@ async function getServer(id) {
   return detailsFrom(id, { ...d, svMaxclients: d.sv_maxclients ?? d.svMaxclients });
 }
 
-module.exports = { cachedRaw: (id) => cache.raw.get(id), listServers, getServer, fetchSingle, onList, cachedServers, iconVersion, clearCache, decodeStream, isNorwegian, mapServer, ServerMsg };
+module.exports = { iconUrlOf, cachedRaw: (id) => cache.raw.get(id), listServers, getServer, fetchSingle, onList, cachedServers, iconVersion, clearCache, decodeStream, isNorwegian, mapServer, ServerMsg };

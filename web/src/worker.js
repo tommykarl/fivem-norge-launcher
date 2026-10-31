@@ -14,6 +14,9 @@ const DAY = 86400_000;
 const SESSION_TTL = 7 * DAY;
 const LAUNCHER_TTL = 30 * DAY;
 const SERVER_ID_RE = /^[a-z0-9]{4,10}$/i;
+const ICON_URL_RE = /^https:\/\/cfx-server-metadata\.cfx-services\.net\/images\/[0-9a-f-]{16,64}$/i;
+// Logo: ny adresse (icon_url) fra FiveM, ellers gammel iconVersion-adresse
+const iconOf = (x) => x?.icon || (x?.iconVersion ? `https://frontend.cfx-services.net/api/servers/icon/${x.id}/${x.iconVersion}.png` : null);
 const dayKey = (t) => new Date(t).toISOString().slice(0, 10);
 const osloHour = (t) => Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Europe/Oslo' }).format(t));
 const now = () => Date.now();
@@ -466,6 +469,7 @@ export class Store {
         clients,
         max,
         iconVersion: Number.isInteger(x.iconVersion) && x.iconVersion > 0 ? x.iconVersion : 0,
+        icon: ICON_URL_RE.test(String(x.iconUrl || '')) ? String(x.iconUrl) : null,
         tags: Array.isArray(x.tags) ? x.tags.slice(0, 6).map((t) => str(String(t), 24)).filter(Boolean) : [],
       });
     }
@@ -483,7 +487,7 @@ export class Store {
     const servers = this.db.live.servers
       .filter((x) => !hidden(x.id))
       .slice(0, 50)
-      .map((x) => ({ ...x, verified: !!this.db.servers[x.id]?.verified, featured: !!this.db.servers[x.id]?.featured, rating: this.rating(x.id) }));
+      .map((x) => ({ ...x, icon: iconOf(x), verified: !!this.db.servers[x.id]?.verified, featured: !!this.db.servers[x.id]?.featured, rating: this.rating(x.id) }));
     return { at: this.db.live.at, total: this.db.live.total || 0, count: this.db.live.servers.length, servers };
   }
 
@@ -651,7 +655,7 @@ export class Store {
     return {
       id,
       name: live?.name || s?.name || id,
-      live: live ? { clients: live.clients, max: live.max, iconVersion: live.iconVersion, tags: live.tags, at: this.db.live.at } : null,
+      live: live ? { clients: live.clients, max: live.max, iconVersion: live.iconVersion, icon: iconOf(live), tags: live.tags, at: this.db.live.at } : null,
       verified: !!s?.verified,
       featured: !!s?.featured,
       profile: s?.profile ? { description: s.profile.description, discord: s.profile.discord, website: s.profile.website } : null,
@@ -663,7 +667,7 @@ export class Store {
   serverPage(id) {
     const d = this.publicServer(id);
     if (!d || (!d.live && !d.profile && !d.reviews.length)) return send(404, pageShell('Fant ikke serveren', `<section class="empty"><h1>Fant ikke serveren</h1><p>Den er ikke i listen over norske servere akkurat nå.</p><a class="btn" href="/#servere">Se alle servere</a></section>`));
-    const icon = d.live?.iconVersion ? `https://frontend.cfx-services.net/api/servers/icon/${id}/${d.live.iconVersion}.png` : null;
+    const icon = d.live?.icon || null;
     const pct = d.live?.max ? Math.round((d.live.clients / d.live.max) * 100) : 0;
     const stars = (n) => '★★★★★'.slice(0, Math.round(n)) + '☆☆☆☆☆'.slice(0, 5 - Math.round(n));
     const reviews = d.reviews.length

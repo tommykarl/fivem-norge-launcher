@@ -159,7 +159,7 @@ function sendSnapshot() {
     .filter((s) => s.clients > 0)
     .sort((a, z) => z.clients - a.clients)
     .slice(0, 200)
-    .map((s) => ({ id: s.id, name: s.name, clients: s.clients, max: s.max, iconVersion: s.iconVersion || 0, tags: (s.tags || []).slice(0, 6) }));
+    .map((s) => ({ id: s.id, name: s.name, clients: s.clients, max: s.max, iconVersion: s.iconVersion || 0, iconUrl: s.iconUrl || null, tags: (s.tags || []).slice(0, 6) }));
   if (servers.length < 3) return;
   lastSnapshot = Date.now();
   call('/api/launcher/snapshot', { method: 'POST', token, body: { servers } }).catch(() => {});

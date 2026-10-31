@@ -112,7 +112,7 @@ if (!app.requestSingleInstanceLock()) {
     // FiveM sitt API vil ha Origin/Referer fra servers.fivem.net. Legg dem på alle kall
     // fra appen (blant annet <img> med logoer), så bildene lastes som på FiveM sin nettside.
     electronSession.defaultSession.webRequest.onBeforeSendHeaders(
-      { urls: ['https://frontend.cfx-services.net/*', 'https://servers-frontend.fivem.net/*'] },
+      { urls: ['https://frontend.cfx-services.net/*', 'https://servers-frontend.fivem.net/*', 'https://cfx-server-metadata.cfx-services.net/*'] },
       (details, cb) => {
         const h = { ...details.requestHeaders };
         for (const k of Object.keys(h)) if (/^(origin|referer)$/i.test(k)) delete h[k];
@@ -428,7 +428,19 @@ ipcMain.handle('debug:icons', async () => {
   for (const s of list) {
     const raw = fivem.cachedRaw(s.id);
     const v = raw?.iconVersion || 0;
-    out.push({ id: s.id, name: s.name, iconVersion: v, results: v ? await icons.diagnose(s.id, v) : [] });
+    const url = fivem.iconUrlOf(raw?.vars);
+    let results = [];
+    if (url) {
+      try {
+        const r = await electronSession.defaultSession.fetch(url);
+        results = [{ url, status: r.status, type: r.headers.get('content-type'), bytes: (await r.arrayBuffer()).byteLength }];
+      } catch (e) {
+        results = [{ url, error: e.message }];
+      }
+    } else if (v) {
+      results = await icons.diagnose(s.id, v);
+    }
+    out.push({ id: s.id, name: s.name, iconVersion: v, iconUrl: url, results });
   }
   return out;
 });
