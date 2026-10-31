@@ -22,12 +22,15 @@ function info() {
   };
 }
 
-// ---------- Oppdateringer (GitHub Releases) ----------
-// Sett UPDATE_REPO=brukernavn/repo i .env for å skru på oppdateringssjekk.
+// ---------- Oppdateringer (exe-mappa på GitHub) ----------
+// Launcheren leser exe/latest.json i repoet (UPDATE_REPO=brukernavn/repo i .env) og
+// laster ned exe-filen som står der. Filen lages av «npm run exe».
 function updateRepo() {
   const r = String(process.env.UPDATE_REPO || '').trim();
   return /^[\w.-]+\/[\w.-]+$/.test(r) ? r : null;
 }
+const UPDATE_BRANCH = () => (/^[\w./-]+$/.test(process.env.UPDATE_BRANCH || '') ? process.env.UPDATE_BRANCH : 'main');
+const rawUrl = (repo, file) => `https://raw.githubusercontent.com/${repo}/${UPDATE_BRANCH()}/exe/${encodeURIComponent(file)}`;
 
 function cmpVersion(a, b) {
   const pa = String(a).replace(/^v/i, '').split(/[.-]/).map((n) => parseInt(n, 10) || 0);
@@ -40,26 +43,29 @@ async function checkUpdate() {
   const repo = updateRepo();
   const current = app.getVersion();
   if (!repo) return { configured: false, current };
-  const res = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, {
-    headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'FiveMNorgeLauncher' },
+  const res = await fetch(`${rawUrl(repo, 'latest.json')}?t=${Date.now()}`, {
+    headers: { 'User-Agent': 'FiveMNorgeLauncher', 'Cache-Control': 'no-cache' },
   });
-  if (res.status === 404) return { configured: true, current, latest: null, newer: false, note: 'Ingen utgivelser funnet ennå' };
+  if (res.status === 404) {
+    return { configured: true, current, latest: null, newer: false, note: 'Fant ikke exe/latest.json på GitHub. Er repoet offentlig?' };
+  }
   if (!res.ok) throw new Error(`GitHub svarte med ${res.status}`);
-  const rel = await res.json();
-  const latest = String(rel.tag_name || '').replace(/^v/i, '');
+  const m = await res.json();
+  const latest = String(m.version || '').replace(/^v/i, '');
+  if (!/^\d+\.\d+\.\d+/.test(latest)) throw new Error('exe/latest.json har ikke et gyldig versjonsnummer');
   const wantPortable = isPortable();
-  const asset = (rel.assets || []).find((a) =>
-    /\.exe$/i.test(a.name) && (wantPortable ? /portable/i.test(a.name) : /setup/i.test(a.name))
-  );
+  const file = wantPortable ? m.portable : m.setup;
+  const valid = typeof file === 'string' && /^[\w.-]+\.exe$/i.test(file);
   return {
     configured: true,
     current,
     latest,
     newer: cmpVersion(latest, current) > 0,
-    url: asset?.browser_download_url || rel.html_url,
-    canInstall: !!asset && !wantPortable && app.isPackaged && process.platform === 'win32',
-    notes: String(rel.body || '').slice(0, 1500),
-    publishedAt: rel.published_at,
+    url: valid ? rawUrl(repo, file) : `https://github.com/${repo}/tree/${UPDATE_BRANCH()}/exe`,
+    sha256: valid ? m.sha256?.[wantPortable ? 'portable' : 'setup'] || null : null,
+    canInstall: valid && !wantPortable && app.isPackaged && process.platform === 'win32',
+    notes: String(m.notes || '').slice(0, 1500),
+    publishedAt: m.publishedAt || null,
   };
 }
 
@@ -144,12 +150,12 @@ function refreshTrayMenu() {
 }
 
 // ---------- Automatisk oppdatering ----------
-// Laster ned installeren fra GitHub-releasen og kjører den stille (/S) med --force-run,
+// Laster ned installeren fra exe-mappa, sjekker SHA-256 og kjører den stille (/S) med --force-run,
 // så launcheren starter igjen av seg selv etterpå.
 let downloaded = null; // { version, file }
 async function downloadUpdate(u, onProgress) {
-  if (!u?.url || !/^https:\/\/(github\.com|objects\.githubusercontent\.com)\//i.test(u.url) || !/\.exe($|\?)/i.test(u.url)) {
-    throw new Error('Fant ingen installer å laste ned i utgivelsen');
+  if (!u?.url || !/^https:\/\/raw\.githubusercontent\.com\//i.test(u.url) || !/\.exe($|\?)/i.test(u.url)) {
+    throw new Error('Fant ingen installer å laste ned i exe-mappa');
   }
   if (isPortable()) throw new Error('Den portable versjonen oppdateres ved å laste ned ny .exe');
   if (downloaded?.version === u.latest && fs.existsSync(downloaded.file)) return downloaded;
@@ -158,6 +164,7 @@ async function downloadUpdate(u, onProgress) {
   const total = Number(res.headers.get('content-length')) || 0;
   const file = path.join(app.getPath('temp'), `FiveM-Norge-Launcher-Setup-${u.latest}.exe`);
   const out = fs.createWriteStream(file);
+  const hash = require('node:crypto').createHash('sha256');
   let got = 0;
   const reader = res.body.getReader();
   try {
@@ -165,6 +172,7 @@ async function downloadUpdate(u, onProgress) {
       const { done, value } = await reader.read();
       if (done) break;
       got += value.length;
+      hash.update(value);
       if (!out.write(Buffer.from(value))) await new Promise((r) => out.once('drain', r));
       if (total && onProgress) onProgress(Math.round((got / total) * 100));
     }
@@ -172,6 +180,10 @@ async function downloadUpdate(u, onProgress) {
     await new Promise((r) => out.end(r));
   }
   if (total && got !== total) throw new Error('Nedlastingen ble avbrutt');
+  if (u.sha256 && hash.digest('hex') !== String(u.sha256).toLowerCase()) {
+    fs.rmSync(file, { force: true });
+    throw new Error('Nedlastet fil stemmer ikke med exe/latest.json (SHA-256). Prøv igjen senere.');
+  }
   downloaded = { version: u.latest, file };
   return downloaded;
 }

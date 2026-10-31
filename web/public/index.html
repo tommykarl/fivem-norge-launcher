@@ -82,14 +82,14 @@ button{font:inherit;cursor:pointer}
         Finn serveren, se når det er mest folk, og koble til direkte. Er den full, står launcheren i kø for deg – også når den ligger i bakgrunnen.
       </p>
       <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center">
-        <a class="btn-primary" href="https://github.com/tommykarl/fivem-norge-launcher/releases/latest">
+        <a class="btn-primary" href="{{ dl.setup }}">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.5l7.5-1v7H3zM11.5 4.4L21 3v8.5h-9.5zM3 12.5h7.5v7L3 18.5zM11.5 12.5H21V21l-9.5-1.4z"></path></svg>
           Last ned for Windows
         </a>
         <a class="btn-ghost" href="#funksjoner">Se funksjonene</a>
       </div>
       <div style="display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; font-size: 14px; color: #7F8AA3">
-        <span>Versjon 1.4.0</span><span aria-hidden="true">·</span><span>Windows 10 og 11</span><span aria-hidden="true">·</span><span>Oppdaterer seg selv</span>
+        <span>Versjon {{ dl.version }}</span><span aria-hidden="true">·</span><span>Windows 10 og 11</span><span aria-hidden="true">·</span><span>Oppdaterer seg selv</span>
       </div>
 
       <div style="width: 100%; max-width: 1100px; margin-top: 30px; text-align: left">
@@ -422,7 +422,7 @@ button{font:inherit;cursor:pointer}
         <div style="background: #0F131D; border: 1px solid #D92B43; border-radius: 22px; padding: 28px; display: flex; flex-direction: column; gap: 14px">
           <div style="display: flex; justify-content: space-between; align-items: center"><h3 style="margin: 0; font-size: 20px; font-weight: 700">Installer</h3><span style="font-size: 12px; font-weight: 600; color: #FF8F9B; border: 1px solid rgba(217,43,67,.45); border-radius: 999px; padding: 2px 10px">Anbefalt</span></div>
           <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #A7B0C5">Snarvei på skrivebordet, start med Windows og automatiske oppdateringer.</p>
-          <a class="btn-primary" href="https://github.com/tommykarl/fivem-norge-launcher/releases/latest" style="justify-content: center; margin-top: auto">
+          <a class="btn-primary" href="{{ dl.setup }}" style="justify-content: center; margin-top: auto">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>
             Last ned Setup.exe
           </a>
@@ -430,10 +430,10 @@ button{font:inherit;cursor:pointer}
         <div style="background: #0F131D; border: 1px solid #1E2535; border-radius: 22px; padding: 28px; display: flex; flex-direction: column; gap: 14px">
           <h3 style="margin: 0; font-size: 20px; font-weight: 700">Portabel</h3>
           <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #A7B0C5">Én fil, ingen installasjon. Fin på minnepinne eller en PC du ikke eier.</p>
-          <a class="btn-ghost" href="https://github.com/tommykarl/fivem-norge-launcher/releases/latest" style="justify-content: center; margin-top: auto">Last ned Portable.exe</a>
+          <a class="btn-ghost" href="{{ dl.portable }}" style="justify-content: center; margin-top: auto">Last ned Portable.exe</a>
         </div>
       </div>
-      <div style="font-size: 14px; color: #A7B0C5">Versjon 1.4.0 · Windows 10 og 11 · 64-bit · krever FiveM</div>
+      <div style="font-size: 14px; color: #A7B0C5">Versjon {{ dl.version }} · Windows 10 og 11 · 64-bit · krever FiveM</div>
     </div>
   </section>
 
@@ -449,7 +449,7 @@ button{font:inherit;cursor:pointer}
   </footer>
 </div>
 </template>
-<noscript><p style="color:#EEF1F7;padding:24px;font-family:system-ui">Last ned launcheren fra <a href="https://github.com/tommykarl/fivem-norge-launcher/releases/latest">GitHub</a>.</p></noscript>
+<noscript><p style="color:#EEF1F7;padding:24px;font-family:system-ui">Last ned launcheren fra <a href="https://github.com/tommykarl/fivem-norge-launcher/tree/main/exe">GitHub</a>.</p></noscript>
 <script>
 // Liten mal-motor: {{ verdi }}, <sc-for list as>, <sc-if value>, onClick.
 class DCLogic {
@@ -471,6 +471,7 @@ const FACTS = [
 const WEEK = [0, 1.5, 0, 2.2, 0.5, 3.1, 0];
 const HOURS = [5, 4, 3, 3, 2, 2, 4, 7, 10, 14, 16, 18, 19, 20, 22, 24, 28, 35, 44, 55, 62, 60, 48, 22];
 const CHANGES = [
+  { v: '1.4.3', t: 'Ny logo, og oppdateringer hentes rett fra GitHub' },
   { v: '1.4.0', t: 'Kunngjøringer fra FiveM Norge vises øverst i launcheren' },
   { v: '1.4.0', t: 'Verifiserte og fremhevede servere – merket i listen' },
   { v: '1.4.0', t: 'Valgfri anonym statistikk og feilrapporter – kan skrus av i Innstillinger' },
@@ -517,6 +518,8 @@ const ROW_STATE = {
   maintenance: ['maint', 'ok', 'maint', 'ok', 'ok'],
 };
 const ROW_LABEL = { info: 'Se live', ok: 'Fungerer', warn: 'Delvis nede', down: 'Nede', maint: 'Vedlikehold' };
+const EXE_RAW = 'https://raw.githubusercontent.com/tommykarl/fivem-norge-launcher/main/exe/';
+const EXE_DIR = 'https://github.com/tommykarl/fivem-norge-launcher/tree/main/exe';
 const TABS = [
   { id: 'home', label: 'Hjem' },
   { id: 'servers', label: 'Servere' },
@@ -526,7 +529,16 @@ const TABS = [
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { open: 0, tab: 'home' };
+    this.state = { open: 0, tab: 'home', dl: { version: '1.4.3', setup: EXE_DIR, portable: EXE_DIR } };
+    // Nyeste versjon og nedlastingslenker fra exe-mappa på GitHub
+    fetch(EXE_RAW + 'latest.json?t=' + Date.now())
+      .then((r) => (r.ok ? r.json() : null))
+      .then((m) => {
+        if (!m || !/^\d+\.\d+\.\d+/.test(m.version)) return;
+        const ok = (f) => typeof f === 'string' && /^[\w.-]+\.exe$/i.test(f);
+        this.setState({ dl: { version: m.version, setup: ok(m.setup) ? EXE_RAW + m.setup : EXE_DIR, portable: ok(m.portable) ? EXE_RAW + m.portable : EXE_DIR } });
+      })
+      .catch(() => {});
   }
   renderVals() {
     const { open, tab } = this.state;
@@ -576,6 +588,7 @@ class Component extends DCLogic {
       facts: FACTS,
       week: WEEK.map((v, i) => ({ h: v ? Math.max(8, Math.round((v / maxW) * 100)) : 4, c: i === 5 ? '#D92B43' : v ? 'rgba(217,43,67,.55)' : '#1A2030' })),
       hours: HOURS.map((v, i) => ({ h: Math.max(4, Math.round((v / maxH) * 100)), c: i === nowH ? '#3DDC97' : 'rgba(61,220,151,.45)' })),
+      dl: this.state.dl,
       changes: CHANGES,
       faq: FAQ.map((f, i) => ({
         ...f,

@@ -1,0 +1,11 @@
+{
+  "version": "1.4.3",
+  "setup": "FiveM-Norge-Launcher-Setup-1.4.3.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.4.3.exe",
+  "sha256": {
+    "setup": "36f482526f7da2793371264490fa83de45a23cda846224105fce9dfa11dbd036",
+    "portable": "200e1798aeebbcba2d9adf5fbf0f79f8027d27613ca0b24647299f988488c713"
+  },
+  "notes": "Ny logo, og oppdateringer hentes nå rett fra exe-mappa på GitHub.",
+  "publishedAt": "2026-10-31T21:42:10.449Z"
+}

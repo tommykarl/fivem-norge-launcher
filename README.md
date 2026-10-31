@@ -2,7 +2,7 @@
 
 En desktop-launcher (Electron + React) for norske FiveM-servere.
 
-**Last ned:** [siste versjon under Releases](https://github.com/tommykarl/fivem-norge-launcher/releases/latest)
+**Last ned:** fra [exe-mappa](exe/) eller [fivemnorge.xyz](https://fivemnorge.xyz)
 
 **Funksjoner**
 - Hjem: «Fortsett der du slapp», ukeoversikt over spilletid, lagrede servere, servere fra dine Discord-fellesskap, varsler/kø og voksende servere
@@ -15,7 +15,7 @@ En desktop-launcher (Electron + React) for norske FiveM-servere.
 - Discord-innlogging, lagrede servere per bruker og Discord-status («Spiller på …»)
 - FiveM-status fra Rockstar Support og egne målinger
 - Mørk/lys modus, fem aksentfarger og hurtigtaster (trykk ?)
-- Automatiske oppdateringer fra GitHub Releases
+- Automatiske oppdateringer fra `exe/`-mappa på GitHub (`exe/latest.json`)
 - Nettside og adminpanel på [fivemnorge.xyz](https://fivemnorge.xyz) (Cloudflare Worker, data som JSON): brukere, roller, utestengelse, servere, kunngjøringer, statistikk og feilrapporter – se [web/README.md](web/README.md)
 
 ## Krav
@@ -33,13 +33,16 @@ En desktop-launcher (Electron + React) for norske FiveM-servere.
 
 Innloggingen bruker OAuth2 implicit grant med `identify` og `guilds`, så appen ser brukernavn, avatar og hvilke Discord-servere du er med i (brukes til «Fra dine Discord-servere»). Tokenet lagres kryptert med Electrons `safeStorage` (Windows: DPAPI).
 
-## Ny versjon (autosync)
-GitHub Actions bygger launcheren hver gang du pusher til `main` (se `.github/workflows/release.yml`):
-1. Øk `version` i `package.json`, for eksempel `1.3.0` → `1.3.1`.
-2. Commit og push.
-3. Etter noen minutter ligger `Setup`- og `Portable`-.exe under **Releases**, og launcherne til brukerne finner oppdateringen selv.
+## Ny versjon
+Launcheren sjekker `exe/latest.json` på GitHub og laster ned exe-filen som står der.
+1. Øk `version` i `package.json`, for eksempel `1.4.3` → `1.4.4`.
+2. Bygg: `npx vite build && npx electron-builder --win --x64 --publish never`
+3. Legg den i exe-mappa: `npm run exe -- "Hva er nytt"` (erstatter de gamle exe-filene og skriver `latest.json`).
+4. Commit og push.
 
-Pusher du uten å endre versjonen, hoppes byggingen over. Bygget kan også startes manuelt under **Actions → Bygg og publiser → Run workflow**.
+Steg 2–4 kan også gjøres av GitHub: **Actions → Bygg exe → Run workflow**.
+
+Repoet må være **offentlig**, ellers får ikke launcheren lest exe-mappa.
 
 ## Discord-status med bilde
 Last opp et bilde med navnet `logo` under **Rich Presence → Art Assets** i Discord-appen din for å få logo i statusen.
