@@ -80,6 +80,7 @@ svg { flex-shrink: 0; }
   padding-left: 16px; border-bottom: 1px solid var(--line-0); -webkit-app-region: drag; user-select: none;
 }
 .brand { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: var(--muted); }
+.brand img { display: block; object-fit: contain; -webkit-user-drag: none; }
 .win-controls { display: flex; height: 100%; -webkit-app-region: no-drag; }
 .win-controls button { width: 46px; height: 100%; display: grid; place-items: center; color: var(--faint); }
 .win-controls button:hover { background: var(--surface-2); color: var(--text); }
