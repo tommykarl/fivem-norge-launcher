@@ -19,7 +19,7 @@ routes = [
 PUBLIC_URL = "https://fivemnorge.xyz"
 DISCORD_CLIENT_ID = "833800432866295868"
 # Discord-ID-ene til eierne, kommaseparert
-ADMIN_DISCORD_IDS = ""
+ADMIN_DISCORD_IDS = "820488822499573780"
 
 # Databasen: JSON-data i en Durable Object
 [[durable_objects.bindings]]
