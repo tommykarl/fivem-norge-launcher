@@ -373,6 +373,7 @@ ipcMain.handle('backend:refresh', async () => {
 });
 ipcMain.handle('backend:api', (_e, method, path, body) => backend.api(method, path, body));
 ipcMain.handle('backend:share', (_e, on) => backend.setShareStatus(on));
+ipcMain.handle('backend:profile', (_e, on) => backend.setPublicProfile(on));
 // Personvern: last ned alt fivemnorge.xyz har om deg, eller slett kontoen
 ipcMain.handle('backend:exportData', async () => {
   const data = await backend.exportMyData();

@@ -76,6 +76,19 @@ export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, 
     }
   };
 
+  const [pub, setPub] = useState(!!account?.publicProfile);
+  useEffect(() => setPub(!!account?.publicProfile), [account?.publicProfile]);
+  const profileUrl = account?.user?.username ? `https://fivemnorge.xyz/bruker/${encodeURIComponent(account.user.username)}` : null;
+  const toggleProfile = async () => {
+    try {
+      await api.backend.setProfile(!pub);
+      setPub(!pub);
+      notify(!pub ? 'Profilen din er nå offentlig' : 'Profilen din er ikke lenger offentlig');
+    } catch (e) {
+      notify(errText(e));
+    }
+  };
+
   const playing = (data?.friends || []).filter((f) => f.playing);
 
   return (
@@ -94,6 +107,19 @@ export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, 
           <button type="button" className={share ? 'switch on' : 'switch'} role="switch" aria-checked={share} aria-label="Vis venner hvor jeg spiller" onClick={toggleShare}><span /></button>
         </div>
         <p className="muted-sm">Bare venner (dere har lagt hverandre til) ser det, og bare mens du spiller. Av som standard.</p>
+      </section>
+
+      <section className="card">
+        <div className="card-head">
+          <h2>Offentlig profil</h2>
+          <button type="button" className={pub ? 'switch on' : 'switch'} role="switch" aria-checked={pub} aria-label="Offentlig profil på fivemnorge.xyz" onClick={toggleProfile}><span /></button>
+        </div>
+        <p className="muted-sm">Viser navnet ditt og spilletiden din per server denne måneden på fivemnorge.xyz. Oppdateres hver time. Av som standard.</p>
+        {pub && profileUrl ? (
+          <button type="button" className="btn ghost sm" style={{ alignSelf: 'flex-start' }} onClick={() => api.openExternal(profileUrl)}>
+            Se profilen din
+          </button>
+        ) : null}
       </section>
 
       <section className="card">

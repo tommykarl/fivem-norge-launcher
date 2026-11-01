@@ -205,7 +205,7 @@ function startSession(server) {
 
 const getActivity = () => {
   const a = activityFile.get();
-  return { recent: a.recent, playtime: a.playtime, totalMs: a.totalMs || 0, active: a.active || null };
+  return { recent: a.recent, playtime: a.playtime, totalMs: a.totalMs || 0, active: a.active || null, daily: a.daily || {} };
 };
 
 // ---------- Spillerhistorikk ----------

@@ -38,6 +38,7 @@ contextBridge.exposeInMainWorld('launcher', {
     refresh: () => ipcRenderer.invoke('backend:refresh'),
     api: (method, path, body) => ipcRenderer.invoke('backend:api', method, path, body),
     setShare: (on) => ipcRenderer.invoke('backend:share', on),
+    setProfile: (on) => ipcRenderer.invoke('backend:profile', on),
     reportBug: (report) => ipcRenderer.invoke('backend:reportBug', report),
     exportData: () => ipcRenderer.invoke('backend:exportData'),
     deleteAccount: () => ipcRenderer.invoke('backend:deleteAccount'),

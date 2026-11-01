@@ -106,7 +106,7 @@ function applyAccount(acc) {
   if (acc?.token) deps.setLauncherToken(acc.token);
   const prev = account;
   account = acc
-    ? { banned: !!acc.banned, banReason: acc.banReason || null, role: acc.role, roleInfo: roleInfoOf(acc), user: acc.user || null, shareStatus: !!acc.shareStatus, staffAnnouncements: Array.isArray(acc.staffAnnouncements) ? acc.staffAnnouncements.slice(0, 5) : [] }
+    ? { banned: !!acc.banned, banReason: acc.banReason || null, role: acc.role, roleInfo: roleInfoOf(acc), user: acc.user || null, shareStatus: !!acc.shareStatus, publicProfile: !!acc.publicProfile, staffAnnouncements: Array.isArray(acc.staffAnnouncements) ? acc.staffAnnouncements.slice(0, 5) : [] }
     : null;
   if (prev && account && prev.roleInfo && JSON.stringify(prev.roleInfo) !== JSON.stringify(account.roleInfo)) {
     deps.onRoleChanged?.(account.roleInfo, prev.roleInfo);
@@ -230,6 +230,34 @@ async function setShareStatus(on) {
   return account;
 }
 
+// ---------- Offentlig profil på fivemnorge.xyz/bruker/<navn> (av som standard) ----------
+// Sender bare spilletid per server for inneværende måned, i minutter.
+function monthPlaytime() {
+  const a = deps.activity() || {};
+  const d = new Date();
+  const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  const play = {};
+  for (const [day, v] of Object.entries(a.daily || {})) {
+    if (!day.startsWith(month)) continue;
+    for (const [id, ms] of Object.entries(v.s || {})) if (/^[a-z0-9]{4,10}$/i.test(id)) play[id] = (play[id] || 0) + ms;
+  }
+  for (const k of Object.keys(play)) play[k] = Math.round(play[k] / 60_000);
+  return { month, playtime: play };
+}
+async function setPublicProfile(on) {
+  const token = deps.getLauncherToken();
+  if (!token) throw new Error('Logg inn med Discord først');
+  const r = await call('/api/launcher/profile', { method: 'POST', token, body: { public: !!on, ...(on ? monthPlaytime() : {}) } });
+  if (account) account.publicProfile = !!on;
+  deps.emit('backend:changed');
+  return r;
+}
+async function sendProfile() {
+  const token = deps.getLauncherToken();
+  if (!base || !token || !account || account.banned || !account.publicProfile) return;
+  await call('/api/launcher/profile', { method: 'POST', token, body: { public: true, ...monthPlaytime() } }).catch(() => {});
+}
+
 // ---------- Lagrede servere følger kontoen ----------
 // Første gang på en PC slås lokale og lagrede på kontoen sammen; etterpå er kontoen fasit.
 async function syncFavorites() {
@@ -348,6 +376,8 @@ function init(url, d) {
   setInterval(() => sendPresence(false), PRESENCE_EVERY);
   setInterval(() => syncAccount(true), ACCOUNT_EVERY);
   setInterval(pollFriends, 2 * 60_000);
+  setInterval(sendProfile, 60 * 60_000);
+  setTimeout(sendProfile, 20_000);
   setTimeout(() => syncFavorites().then(pollFriends), 6_000);
   setTimeout(() => hello(false).then(() => sendPresence(true)), 3_000);
 }
@@ -375,6 +405,7 @@ module.exports = {
   syncAccount,
   sendSnapshot,
   setShareStatus,
+  setPublicProfile,
   api,
   state,
   refresh: () => refreshConfig(false),
