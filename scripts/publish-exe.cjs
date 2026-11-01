@@ -1,7 +1,8 @@
 // Legger ferdigbygde exe-filer i exe/ og skriver exe/latest.json, som launcheren
-// sjekker for oppdateringer. Gamle exe-filer i mappa fjernes.
+// sjekker for oppdateringer. Gamle exe-filer i mappa fjernes, med mindre du legger til --behold.
 //
 // Bruk:  npm run exe -- "Hva er nytt i denne versjonen"
+//        npm run exe -- --behold "Test"     (beholder eldre exe-filer)
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
@@ -21,7 +22,9 @@ for (const f of Object.values(names)) {
     process.exit(1);
   }
 }
-for (const f of fs.readdirSync(out)) if (/\.exe$/i.test(f) && !Object.values(names).includes(f)) fs.rmSync(path.join(out, f));
+const args = process.argv.slice(2);
+const keep = args.includes('--behold');
+if (!keep) for (const f of fs.readdirSync(out)) if (/\.exe$/i.test(f) && !Object.values(names).includes(f)) fs.rmSync(path.join(out, f));
 
 const sha256 = {};
 for (const [kind, f] of Object.entries(names)) {
@@ -33,7 +36,7 @@ const manifest = {
   setup: names.setup,
   portable: names.portable,
   sha256,
-  notes: process.argv.slice(2).join(' ').trim(),
+  notes: args.filter((a) => a !== '--behold').join(' ').trim(),
   publishedAt: new Date().toISOString(),
 };
 fs.writeFileSync(path.join(out, 'latest.json'), JSON.stringify(manifest, null, 2) + '\n');

@@ -1,11 +1,11 @@
 {
-  "version": "1.6.0",
-  "setup": "FiveM-Norge-Launcher-Setup-1.6.0.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.6.0.exe",
+  "version": "1.6.1",
+  "setup": "FiveM-Norge-Launcher-Setup-1.6.1.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.6.1.exe",
   "sha256": {
-    "setup": "2a9152380f4531e900958d1d541b1300b96c7c4caf2caf3dad2b36c49aa76639",
-    "portable": "f8864a5ba2972377678bdbab6b5afdbd2d813bd9f3a9ec3084b38b9f332db563"
+    "setup": "f9d12e8c294361b8c43790d3e7373563132f5f38a6dc21af699e83014660d7cd",
+    "portable": "af2f598ea08ed60b1c51402d4fa76d34e2e4818eb3d91d4a16aafb3417077a47"
   },
-  "notes": "Nytt i 1.6.0:\n• Lagrede servere følger Discord-kontoen din mellom PC-er\n• Varsel når en venn begynner å spille (kan skrus av i Innstillinger)\n• Last ned eller slett dataene dine under Innstillinger → Personvern\n• Servereiere kan redigere serveren sin og se statistikk rett på serversiden\n• Staben: saker og advarsler per bruker, og kunngjøringer bare for staben",
-  "publishedAt": "2026-11-01T04:13:58.489Z"
+  "notes": "Testoppdatering 1.6.1 – samme innhold som 1.6.0. Brukes for å sjekke at oppdateringer og Discord-boten virker.",
+  "publishedAt": "2026-11-01T05:04:27.009Z"
 }
