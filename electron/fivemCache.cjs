@@ -78,13 +78,24 @@ async function targetsFor(key) {
   return out;
 }
 
+// FiveM sine egne prosesser: FiveM.exe, FiveM_b3095_GTAProcess.exe, FiveM_ChromeBrowser.exe osv.
+// NB: Launcheren selv heter «FiveM Norge Launcher.exe» og skal IKKE regnes som FiveM.
+const FIVEM_PROC_RE = /^FiveM(_[^\s]+)?\.exe$/i;
+function fiveMRunningIn(tasklistCsv, ownExe = '') {
+  const own = String(ownExe).toLowerCase();
+  return String(tasklistCsv)
+    .split(/\r?\n/)
+    .map((line) => (line.match(/^"([^"]+)"/) || [])[1])
+    .some((name) => name && FIVEM_PROC_RE.test(name) && name.toLowerCase() !== own);
+}
+
 function isFiveMRunning() {
   if (process.platform !== 'win32') return Promise.resolve(false);
   return new Promise((resolve) => {
     // null = klarte ikke å sjekke (da avsluttes ikke spilleøkter på feil grunnlag)
     execFile('tasklist', ['/FO', 'CSV', '/NH'], { windowsHide: true, timeout: 10_000, maxBuffer: 8 * 1024 * 1024 }, (err, stdout) => {
       if (err) return resolve(null);
-      resolve(/^"FiveM[^"]*\.exe"/im.test(stdout));
+      resolve(fiveMRunningIn(stdout, path.basename(process.execPath)));
     });
   });
 }
@@ -104,7 +115,7 @@ async function info() {
 async function clear(keys) {
   if (process.platform !== 'win32') throw new Error('Kun støttet på Windows');
   if (!fs.existsSync(DATA_DIR())) throw new Error('Fant ikke FiveM-mappen');
-  if ((await isFiveMRunning()) !== false) throw new Error('Lukk FiveM før du tømmer cachen (eller prøv igjen om litt)');
+  if ((await isFiveMRunning()) === true) throw new Error('Lukk FiveM før du tømmer cachen');
 
   let freed = 0;
   let failed = 0;
@@ -152,4 +163,4 @@ async function detectServer(since = 0) {
   }
 }
 
-module.exports = { info, clear, isFiveMRunning, detectServer };
+module.exports = { info, clear, isFiveMRunning, detectServer, fiveMRunningIn };

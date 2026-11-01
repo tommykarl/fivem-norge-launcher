@@ -1,11 +1,11 @@
 {
-  "version": "1.5.3",
-  "setup": "FiveM-Norge-Launcher-Setup-1.5.3.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.5.3.exe",
+  "version": "1.5.4",
+  "setup": "FiveM-Norge-Launcher-Setup-1.5.4.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.5.4.exe",
   "sha256": {
-    "setup": "bcd1c8dceb3fce992d783bf038ef9c2944b0b47f2926dc4e4b4a9129075f2b8b",
-    "portable": "cec69d4ac78a5b0473b2d396a660ce35da3fe6962245a5891b5deb8314505d76"
+    "setup": "896964b66c6ad6de88994d4da49e7dbdc9e4c448a9ba08a529245b6bcc453d35",
+    "portable": "ffee15afd2f7b03b787311c8abc875999212352090cd06eaae0910232d64e422"
   },
-  "notes": "Rollen din synkes nå fra adminpanelet: endringer slår inn i løpet av et minutt, uten omstart. Egne roller vises med navn og farge.",
-  "publishedAt": "2026-10-31T23:32:22.827Z"
+  "notes": "Feilretting: «Tøm FiveM-cache» var låst selv om FiveM var lukket. Spilletid ble også feilregistrert mens launcheren var åpen. Begge deler er fikset.",
+  "publishedAt": "2026-11-01T01:01:02.297Z"
 }
