@@ -105,6 +105,19 @@ export default function App() {
     api.app.whatsNew?.().then((w) => w && setWhatsNew(w)).catch(() => {});
     api.app.info().then((i) => setAppVersion(i?.version || null)).catch(() => {});
     const st = setInterval(() => loadStatus(), 3 * 60_000);
+    // Ser etter ny versjon hver time også når launcheren står åpen (eller ligger ved klokka)
+    const up = setInterval(() => {
+      api.settings.get().then((cur) => {
+        if (!cur?.autoUpdateCheck) return;
+        api.app.checkUpdate().then((u) => {
+          if (!u?.newer) return;
+          setUpdate((old) => {
+            if (old?.latest !== u.latest) notify(`Versjon ${u.latest} er tilgjengelig – se Innstillinger`);
+            return u;
+          });
+        }).catch(() => {});
+      }).catch(() => {});
+    }, 60 * 60_000);
     api.settings.get().then((st) => {
       setSettings(st);
       if (!routeTouched.current) setRoute({ name: st.startPage || 'home' });
@@ -169,6 +182,7 @@ export default function App() {
     window.addEventListener('keydown', onKey);
     return () => {
       clearInterval(st);
+      clearInterval(up);
       offs.forEach((off) => off());
       window.removeEventListener('keydown', onKey);
     };
