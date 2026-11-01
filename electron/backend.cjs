@@ -401,6 +401,14 @@ module.exports = {
   syncFavorites,
   pushFavorites,
   exportMyData: async () => call('/api/launcher/mydata', { token: deps.getLauncherToken() }),
+  // Samme data som en lesbar side (HTML) fra nettsiden
+  exportMyDataHtml: async () => {
+    const token = deps.getLauncherToken();
+    if (!base || !token) throw new Error('Logg inn med Discord først');
+    const res = await fetch(`${base}/api/launcher/mydata?format=html`, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(20_000) });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
+    return res.text();
+  },
   deleteMyAccount: async () => call('/api/launcher/account', { method: 'DELETE', token: deps.getLauncherToken() }),
   syncAccount,
   sendSnapshot,

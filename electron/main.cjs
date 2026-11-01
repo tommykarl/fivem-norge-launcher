@@ -376,15 +376,24 @@ ipcMain.handle('backend:share', (_e, on) => backend.setShareStatus(on));
 ipcMain.handle('backend:profile', (_e, on) => backend.setPublicProfile(on));
 // Personvern: last ned alt fivemnorge.xyz har om deg, eller slett kontoen
 ipcMain.handle('backend:exportData', async () => {
-  const data = await backend.exportMyData();
+  // Lesbar HTML-side (med rådata nederst). Faller tilbake til JSON hvis nettsiden er eldre.
+  let html = null;
+  let data = null;
+  try {
+    html = await backend.exportMyDataHtml();
+  } catch {
+    data = await backend.exportMyData();
+  }
+  const ext = html ? 'html' : 'json';
   const { canceled, filePath } = await dialog.showSaveDialog(win, {
     title: 'Lagre dataene dine',
-    defaultPath: path.join(app.getPath('downloads'), `fivemnorge-mine-data-${new Date().toISOString().slice(0, 10)}.json`),
-    filters: [{ name: 'JSON', extensions: ['json'] }],
+    defaultPath: path.join(app.getPath('downloads'), `fivemnorge-mine-data-${new Date().toISOString().slice(0, 10)}.${ext}`),
+    filters: html ? [{ name: 'Nettside', extensions: ['html'] }] : [{ name: 'JSON', extensions: ['json'] }],
   });
   if (canceled || !filePath) return null;
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-  shell.showItemInFolder(filePath);
+  fs.writeFileSync(filePath, html || JSON.stringify(data, null, 2));
+  if (html) shell.openPath(filePath);
+  else shell.showItemInFolder(filePath);
   return filePath;
 });
 ipcMain.handle('backend:deleteAccount', async () => {
