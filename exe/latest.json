@@ -1,21 +1,21 @@
 {
-  "version": "1.7.0",
-  "setup": "FiveM-Norge-Launcher-Setup-1.7.0.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.7.0.exe",
+  "version": "1.7.1",
+  "setup": "FiveM-Norge-Launcher-Setup-1.7.1.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.7.1.exe",
   "sha256": {
-    "setup": "e0837cdbf98f50bc26146f60333718ae367a0899a4045823445ff95af9fae13b",
-    "portable": "d2a70a4b8351086728f6c5191e238cca73578fca8023cb2bf6ca78946d287666"
+    "setup": "dc9622b3654f6bfbb9e036c9edec4bfb230ccae177b6ae6f625f45090d23e2c3",
+    "portable": "7bfc775683fa795a6ef85808127b86b4d2780467c28abe3bf4ce4a6a215808c7"
   },
   "sizes": {
-    "setup": 82474911,
-    "portable": 82155505
+    "setup": 82475486,
+    "portable": 82156046
   },
   "asar": {
-    "file": "app-1.7.0.asar.gz",
-    "sha256": "32364b1780bca07be6ff39887f9af9a29774b6fb1750edf9ecb01c45a7b24be9",
-    "size": 2003615,
+    "file": "app-1.7.1.asar.gz",
+    "sha256": "befb0bd702f683850124d0333167cc45bf63bbdae99f85f35057aa6f2fd81f7c",
+    "size": 2004521,
     "electron": "33.4.11"
   },
-  "notes": "Nytt i 1.7.0:\n• Discord-statusen viser serverlogoen og en knapp til serversiden\n• Mindre oppdateringer: fra nå av lastes bare det som er endret ned (ca. 2 MB i stedet for 80 MB)\n• Venneforespørsler kommer også som melding på Discord",
-  "publishedAt": "2026-11-01T11:52:25.653Z"
+  "notes": "Nytt i 1.7.1:\n• Offentlig profil på fivemnorge.xyz (slås på under Venner, av som standard)\n• Ser etter ny versjon hver time mens launcheren er åpen\n• Tydelig melding når nettsiden har stengt for nye brukere (vedlikehold)",
+  "publishedAt": "2026-11-01T22:06:11.395Z"
 }
