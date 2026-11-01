@@ -136,7 +136,7 @@ if (!app.requestSingleInstanceLock()) {
     });
     const st = features.getSettings();
     backend.init(process.env.BACKEND_URL, {
-      emit: (ch) => win?.webContents.send(ch),
+      emit: (ch, payload) => win?.webContents.send(ch, payload),
       telemetry: () => features.getSettings().telemetry,
       getDiscordToken: () => session?.token || null,
       getLauncherToken: () => session?.fnlToken || null,

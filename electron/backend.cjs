@@ -49,6 +49,7 @@ function installId() {
   return f.id;
 }
 
+let maintenanceShown = false;
 class ApiError extends Error {
   constructor(status, message) {
     super(message);
@@ -144,7 +145,12 @@ async function hello(fresh = false) {
       );
     }
   } catch (e) {
-    if (e.status === 403) applyAccount({ banned: true, banReason: null });
+    if (e.status === 423) {
+      // Vedlikehold: nye brukere kan ikke registrere seg nå. Launcheren virker, men uten konto.
+      account = null;
+      if (!maintenanceShown) deps.emit('toast', e.message || 'FiveM Norge har vedlikehold. Prøv å logge inn igjen senere.');
+      maintenanceShown = true;
+    } else if (e.status === 403) applyAccount({ banned: true, banReason: null });
     /* ellers: backend nede – prøv igjen senere */
   }
   deps.emit('backend:changed');
