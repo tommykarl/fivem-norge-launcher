@@ -285,7 +285,7 @@ export default function SettingsPage({
               : !update.configured
               ? 'Oppdateringssjekk er ikke satt opp (UPDATE_REPO mangler i .env).'
               : update.newer
-              ? `Versjon ${update.latest} er tilgjengelig.`
+              ? `Versjon ${update.latest} er tilgjengelig${update.size ? ` (${update.size < 1048576 ? `${Math.max(1, Math.round(update.size / 1024))} kB` : `${(update.size / 1048576).toFixed(1).replace('.', ',')} MB`}${update.patch ? ', liten oppdatering' : ''})` : ''}.`
               : update.note || 'Du har nyeste versjon.'
           }
         >

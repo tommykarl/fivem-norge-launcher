@@ -9,16 +9,22 @@ let ready = false;
 let retry = null;
 let current = { kind: 'browsing' };
 const startedAt = Date.now();
+// Bildet hentes rett fra nettsiden, så det trenger ikke lastes opp i Discord Developer Portal
+const LOGO = 'https://fivemnorge.xyz/logo-512.png';
+const SITE = { label: 'Få FiveM Norge', url: 'https://fivemnorge.xyz' };
+const ID_RE = /^[a-z0-9]{4,10}$/i;
 
 function activity() {
-  if (current.kind === 'playing') {
+  if (current.kind === 'playing' && current.name) {
+    const icon = /^https:\/\/cfx-server-metadata\.cfx-services\.net\//.test(current.icon || '') ? current.icon : null;
     return {
       details: `Spiller på ${current.name}`.slice(0, 128),
-      state: 'via FiveM Norge Launcher',
+      state: 'via FiveM Norge',
       startTimestamp: current.startedAt || Date.now(),
-      largeImageKey: 'logo',
-      largeImageText: 'FiveM Norge Launcher',
-      buttons: [{ label: 'Bli med', url: `https://cfx.re/join/${current.id}` }],
+      largeImageKey: icon || LOGO,
+      largeImageText: current.name.slice(0, 128),
+      ...(icon ? { smallImageKey: LOGO, smallImageText: 'FiveM Norge Launcher' } : {}),
+      buttons: ID_RE.test(current.id || '') ? [{ label: 'Se serveren', url: `https://fivemnorge.xyz/server/${current.id}` }, SITE] : [SITE],
       instance: false,
     };
   }
@@ -26,8 +32,9 @@ function activity() {
     details: 'Ser etter norske FiveM-servere',
     state: 'FiveM Norge Launcher',
     startTimestamp: startedAt,
-    largeImageKey: 'logo',
+    largeImageKey: LOGO,
     largeImageText: 'FiveM Norge Launcher',
+    buttons: [SITE],
     instance: false,
   };
 }
@@ -87,7 +94,7 @@ module.exports = {
     else disconnect();
   },
   playing(s) {
-    current = { kind: 'playing', id: s.id, name: s.name, startedAt: s.startedAt };
+    current = { kind: 'playing', id: s.id, name: s.name, startedAt: s.startedAt, icon: s.icon || null };
     push();
   },
   browsing() {

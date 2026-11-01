@@ -1,11 +1,21 @@
 {
-  "version": "1.6.1",
-  "setup": "FiveM-Norge-Launcher-Setup-1.6.1.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.6.1.exe",
+  "version": "1.7.0",
+  "setup": "FiveM-Norge-Launcher-Setup-1.7.0.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.7.0.exe",
   "sha256": {
-    "setup": "f9d12e8c294361b8c43790d3e7373563132f5f38a6dc21af699e83014660d7cd",
-    "portable": "af2f598ea08ed60b1c51402d4fa76d34e2e4818eb3d91d4a16aafb3417077a47"
+    "setup": "e0837cdbf98f50bc26146f60333718ae367a0899a4045823445ff95af9fae13b",
+    "portable": "d2a70a4b8351086728f6c5191e238cca73578fca8023cb2bf6ca78946d287666"
   },
-  "notes": "Testoppdatering 1.6.1 – samme innhold som 1.6.0. Brukes for å sjekke at oppdateringer og Discord-boten virker.",
-  "publishedAt": "2026-11-01T05:04:27.009Z"
+  "sizes": {
+    "setup": 82474911,
+    "portable": 82155505
+  },
+  "asar": {
+    "file": "app-1.7.0.asar.gz",
+    "sha256": "32364b1780bca07be6ff39887f9af9a29774b6fb1750edf9ecb01c45a7b24be9",
+    "size": 2003615,
+    "electron": "33.4.11"
+  },
+  "notes": "Nytt i 1.7.0:\n• Discord-statusen viser serverlogoen og en knapp til serversiden\n• Mindre oppdateringer: fra nå av lastes bare det som er endret ned (ca. 2 MB i stedet for 80 MB)\n• Venneforespørsler kommer også som melding på Discord",
+  "publishedAt": "2026-11-01T11:52:25.653Z"
 }

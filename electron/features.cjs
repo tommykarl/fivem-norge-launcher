@@ -145,12 +145,15 @@ async function identify(a) {
     a.active.id = found.id;
     a.active.name = name;
     addRecent({ id: found.id, name });
-    deps.presence?.playing(a.active);
+    deps.presence?.playing(withIcon(a.active));
     deps.emit('activity:changed');
   } catch {
     /* best effort */
   }
 }
+
+// Serverlogoen vises i Discord-statusen når den er kjent
+const withIcon = (x) => ({ ...x, icon: (x.id && (deps.fivem.cachedServers() || []).find((s) => s.id === x.id)?.iconUrl) || null });
 
 async function trackTick() {
   const running = await deps.isFiveMRunning();
@@ -165,7 +168,7 @@ async function trackTick() {
       const viaLauncher = pending && now - pending.requested < 10 * 60_000 ? pending : null;
       a.active = { id: viaLauncher?.id || null, name: viaLauncher?.name || null, startedAt: now, lastSeen: now };
       pending = null;
-      if (a.active.id) deps.presence?.playing(a.active);
+      if (a.active.id) deps.presence?.playing(withIcon(a.active));
       else await identify(a);
     } else {
       credit(a, a.active.id, Math.min(now - a.active.lastSeen, MAX_DELTA));
@@ -194,7 +197,7 @@ function startSession(server) {
     a.active.id = server.id;
     a.active.name = server.name;
     activityFile.save();
-    deps.presence?.playing(a.active);
+    deps.presence?.playing(withIcon(a.active));
   } else {
     pending = { id: server.id, name: server.name, requested: Date.now() };
   }

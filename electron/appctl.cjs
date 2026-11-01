@@ -56,7 +56,15 @@ async function checkUpdate() {
   const wantPortable = isPortable();
   const file = wantPortable ? m.portable : m.setup;
   const valid = typeof file === 'string' && /^[\w.-]+\.exe$/i.test(file);
+  // Liten oppdatering: når Electron-versjonen er lik, holder det å bytte app.asar (ca. 2 MB i stedet for 80 MB)
+  const a = m.asar;
+  const patch =
+    !wantPortable && app.isPackaged && process.platform === 'win32' && a && typeof a.file === 'string' && /^[\w.-]+\.asar\.gz$/i.test(a.file) && /^[0-9a-f]{64}$/i.test(a.sha256 || '') && a.electron === process.versions.electron && resourcesWritable()
+      ? { url: rawUrl(repo, a.file), sha256: a.sha256.toLowerCase(), size: Number(a.size) || 0 }
+      : null;
   return {
+    patch,
+    size: patch ? patch.size : Number(m.sizes?.[wantPortable ? 'portable' : 'setup']) || 0,
     configured: true,
     current,
     latest,
@@ -153,7 +161,69 @@ function refreshTrayMenu() {
 // Laster ned installeren fra exe-mappa, sjekker SHA-256 og kjører den stille (/S) med --force-run,
 // så launcheren starter igjen av seg selv etterpå.
 let downloaded = null; // { version, file }
+// Kan vi skrive i programmappa (vanlig installasjon for én bruker)? Ellers brukes hele installeren.
+function resourcesWritable() {
+  try {
+    const probe = path.join(process.resourcesPath, `.write-test-${process.pid}`);
+    fs.writeFileSync(probe, '1');
+    fs.rmSync(probe, { force: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+const PATCH_FILE = () => path.join(process.resourcesPath, 'app-update.bin'); // ikke .asar: Electron behandler slike stier spesielt
+
+async function downloadPatch(u, onProgress) {
+  // Adressen kommer fra vinduet: godta bare filer fra exe-mappa i oppdateringsrepoet
+  const repo = updateRepo();
+  if (!repo || !u.patch.url.startsWith(rawUrl(repo, '')) || !/\/app-[\d.]+\.asar\.gz$/i.test(u.patch.url) || !/^[0-9a-f]{64}$/.test(u.patch.sha256 || '')) throw new Error('Ugyldig oppdatering');
+  const res = await fetch(u.patch.url, { headers: { 'User-Agent': 'FiveMNorgeLauncher' }, redirect: 'follow' });
+  if (!res.ok || !res.body) throw new Error(`Nedlasting feilet (HTTP ${res.status})`);
+  const total = Number(res.headers.get('content-length')) || u.patch.size || 0;
+  const zlib = require('node:zlib');
+  const hash = require('node:crypto').createHash('sha256');
+  const tmp = `${PATCH_FILE()}.part`;
+  const out = fs.createWriteStream(tmp);
+  const gunzip = zlib.createGunzip();
+  const done = new Promise((resolve, reject) => {
+    gunzip.on('data', (chunk) => hash.update(chunk));
+    gunzip.on('error', reject);
+    out.on('error', reject);
+    out.on('finish', resolve);
+  });
+  gunzip.pipe(out);
+  let got = 0;
+  const reader = res.body.getReader();
+  for (;;) {
+    const { done: end, value } = await reader.read();
+    if (end) break;
+    got += value.length;
+    if (!gunzip.write(Buffer.from(value))) await new Promise((r) => gunzip.once('drain', r));
+    if (total && onProgress) onProgress(Math.min(100, Math.round((got / total) * 100)));
+  }
+  gunzip.end();
+  await done;
+  if (hash.digest('hex') !== u.patch.sha256) {
+    fs.rmSync(tmp, { force: true });
+    throw new Error('Oppdateringen stemmer ikke med exe/latest.json (SHA-256)');
+  }
+  fs.renameSync(tmp, PATCH_FILE());
+  return { version: u.latest, kind: 'patch', file: PATCH_FILE() };
+}
+
 async function downloadUpdate(u, onProgress) {
+  if (u?.patch && !isPortable()) {
+    if (downloaded?.version === u.latest && fs.existsSync(downloaded.file)) return downloaded;
+    try {
+      downloaded = await downloadPatch(u, onProgress);
+      return downloaded;
+    } catch (e) {
+      // Faller tilbake til hele installeren
+      console.warn('[oppdatering] liten oppdatering feilet, bruker installeren:', e.message);
+      fs.rmSync(`${PATCH_FILE()}.part`, { force: true });
+    }
+  }
   if (!u?.url || !/^https:\/\/raw\.githubusercontent\.com\//i.test(u.url) || !/\.exe($|\?)/i.test(u.url)) {
     throw new Error('Fant ingen installer å laste ned i exe-mappa');
   }
@@ -190,6 +260,37 @@ async function downloadUpdate(u, onProgress) {
 
 function installUpdate() {
   if (!downloaded || !fs.existsSync(downloaded.file)) throw new Error('Ingen oppdatering er lastet ned');
+  if (downloaded.kind === 'patch') {
+    // Et lite skript venter til launcheren er lukket, bytter app.asar og starter den igjen.
+    // Går byttet galt, legges den gamle fila tilbake.
+    const res = process.resourcesPath;
+    const q = (p) => `"${p.replace(/"/g, '')}"`;
+    const script = [
+      '@echo off',
+      'set n=0',
+      // Prøver å flytte app.asar til launcheren har sluppet fila (maks ca. 60 sekunder)
+      ':retry',
+      'ping -n 2 127.0.0.1 >nul',
+      `move /Y ${q(path.join(res, 'app.asar'))} ${q(path.join(res, 'app.asar.old'))} >nul 2>&1`,
+      'if not errorlevel 1 goto swap',
+      'set /a n+=1',
+      'if %n% geq 60 goto start',
+      'goto retry',
+      ':swap',
+      `move /Y ${q(downloaded.file)} ${q(path.join(res, 'app.asar'))} >nul 2>&1`,
+      `if errorlevel 1 move /Y ${q(path.join(res, 'app.asar.old'))} ${q(path.join(res, 'app.asar'))} >nul 2>&1`,
+      `del /F /Q ${q(path.join(res, 'app.asar.old'))} >nul 2>&1`,
+      ':start',
+      `start "" ${q(process.execPath)}`,
+      '(goto) 2>nul & del "%~f0"',
+    ].join('\r\n');
+    const file = path.join(app.getPath('temp'), `fivem-norge-oppdatering-${Date.now()}.cmd`);
+    fs.writeFileSync(file, script);
+    const child = spawn('cmd.exe', ['/d', '/c', file], { detached: true, stdio: 'ignore', windowsHide: true });
+    child.unref();
+    setTimeout(() => app.exit(0), 300);
+    return true;
+  }
   const child = spawn(downloaded.file, ['/S', '--force-run'], { detached: true, stdio: 'ignore' });
   child.unref();
   setTimeout(() => app.exit(0), 300);
