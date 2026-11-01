@@ -45,6 +45,7 @@ export default function App() {
   const [focusSignal, setFocusSignal] = useState(0);
   const [iconKey, setIconKey] = useState(0);
   const [whatsNew, setWhatsNew] = useState(null);
+  const [appVersion, setAppVersion] = useState(null);
   const toastTimer = useRef(null);
   const mainRef = useRef(null);
 
@@ -102,6 +103,7 @@ export default function App() {
     loadBackend();
     loadStatus();
     api.app.whatsNew?.().then((w) => w && setWhatsNew(w)).catch(() => {});
+    api.app.info().then((i) => setAppVersion(i?.version || null)).catch(() => {});
     const st = setInterval(() => loadStatus(), 3 * 60_000);
     api.settings.get().then((st) => {
       setSettings(st);
@@ -123,6 +125,7 @@ export default function App() {
       api.on('activity:changed', loadActivity),
       api.on('status:changed', () => loadStatus()),
       api.on('backend:changed', loadBackend),
+      api.on('favorites:changed', () => api.favorites.list().then(setFavorites).catch(() => {})),
       api.on('backend:banned', (reason) => {
         setBanned({ reason });
         setUser(null);
@@ -330,6 +333,18 @@ export default function App() {
 
   // Rolle synkes fra adminpanelet på nettsiden (roleInfo.staff = rollen har minst én tilgang)
   const isStaff = !backend.account?.banned && (backend.account?.roleInfo ? !!backend.account.roleInfo.staff : ['owner', 'admin', 'moderator'].includes(backend.account?.role));
+  // Kunngjøringer: «bare versjon X og eldre» og egne kunngjøringer for staben
+  const announcements = useMemo(() => {
+    const older = (v, max) => {
+      const a = String(v || '').split('.').map(Number);
+      const b = String(max || '').split('.').map(Number);
+      for (let i = 0; i < 3; i++) if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) < (b[i] || 0);
+      return true;
+    };
+    const list = (backend.config?.announcements || []).filter((a) => !a.maxVersion || !appVersion || older(appVersion, a.maxVersion));
+    const staff = isStaff ? (backend.account?.staffAnnouncements || []).map((a) => ({ ...a, title: `Stab: ${a.title}` })) : [];
+    return [...staff, ...list];
+  }, [backend.config, backend.account, appVersion, isStaff]);
   const counts = { servers: shownServers.length, saved: favorites.length, recent: activity.recent.length };
 
   return (
@@ -353,7 +368,7 @@ export default function App() {
         />
 
         <main className="main" ref={mainRef} key={iconKey}>
-          <Announcements items={backend.config?.announcements || []} banned={banned} />
+          <Announcements items={announcements} banned={banned} />
           {route.name === 'home' && (
             <HomePage
               user={user}

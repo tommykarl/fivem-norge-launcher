@@ -170,6 +170,7 @@ function Users({ notify, role, canManage, canBan }) {
             <div className="grow">
               <strong>{u.display_name || u.username} <RolePill u={u} roles={roles} /></strong>
               <small>@{u.username} · {u.id} · sist sett {formatAgo(u.last_seen)}{u.version ? ` · v${u.version}` : ''}{u.ban_reason ? ` · Årsak: ${u.ban_reason}` : ''}</small>
+              <Cases u={u} canAdd={canBan} notify={notify} onChange={load} />
             </div>
             {!u.owner && canManage && (
               <select className="input" style={{ width: 140, minHeight: 32 }} value={u.role} aria-label="Rolle" onChange={(e) => update(u, { role: e.target.value }, 'Rollen er endret')}>
@@ -191,9 +192,54 @@ function Users({ notify, role, canManage, canBan }) {
   );
 }
 
+// Saker: advarsler, notater, utestengelser og rolleendringer for én bruker
+const CASE_LABEL = { warning: ['Advarsel', 'moderator'], note: ['Notat', ''], ban: ['Utestengt', 'banned'], unban: ['Opphevet', 'admin'], role: ['Rolle', 'admin'] };
+function Cases({ u, canAdd, notify, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState('');
+  const cases = u.cases || [];
+  const warnings = cases.filter((c) => c.kind === 'warning').length;
+  const add = async (kind) => {
+    if (!text.trim()) return;
+    try {
+      await call('POST', `/users/${u.id}/cases`, { kind, text });
+      setText('');
+      notify(kind === 'warning' ? 'Advarsel registrert' : 'Notat lagt til');
+      onChange();
+    } catch (e) {
+      notify(errText(e));
+    }
+  };
+  if (!cases.length && !canAdd) return null;
+  return (
+    <div style={{ marginTop: 6 }}>
+      <button className="btn sm ghost" aria-expanded={open} onClick={() => setOpen(!open)}>
+        Saker ({cases.length}){warnings ? ` · ${warnings} advarsel${warnings > 1 ? 'er' : ''}` : ''}
+      </button>
+      {open && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
+          {canAdd && (
+            <div className="form-row">
+              <input className="input" style={{ minHeight: 32 }} value={text} maxLength={1000} onChange={(e) => setText(e.target.value)} placeholder="Hva skjedde?" aria-label="Ny sak" />
+              <button className="btn sm" disabled={!text.trim()} onClick={() => add('warning')}>Gi advarsel</button>
+              <button className="btn sm ghost" disabled={!text.trim()} onClick={() => add('note')}>Notat</button>
+            </div>
+          )}
+          {cases.map((c, i) => (
+            <small key={i} style={{ display: 'block' }}>
+              <span className={`pill-role ${CASE_LABEL[c.kind]?.[1] || ''}`}>{CASE_LABEL[c.kind]?.[0] || c.kind}</span> {c.by} · {formatAgo(c.at)}{c.text ? ` – ${c.text}` : ''}
+            </small>
+          ))}
+          {!cases.length && <small>Ingen saker ennå.</small>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Announcements({ notify }) {
   const [list, setList] = useState(null);
-  const [f, setF] = useState({ title: '', body: '', level: 'info' });
+  const [f, setF] = useState({ title: '', body: '', level: 'info', audience: 'all', maxVersion: '' });
   const load = useCallback(() => call('GET', '/announcements').then(setList).catch((e) => notify(errText(e))), [notify]);
   useEffect(() => {
     load();
@@ -202,7 +248,7 @@ function Announcements({ notify }) {
     e.preventDefault();
     try {
       await call('POST', '/announcements', { ...f, active: true });
-      setF({ title: '', body: '', level: 'info' });
+      setF({ title: '', body: '', level: 'info', audience: 'all', maxVersion: '' });
       notify('Kunngjøringen er publisert');
       load();
     } catch (e2) {
@@ -232,7 +278,17 @@ function Announcements({ notify }) {
               <option value="critical">Kritisk (kan ikke lukkes)</option>
             </select>
           </label>
-          <button className="btn play" disabled={!f.title.trim()}><Plus size={16} /> Publiser</button>
+          <label className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>Hvem
+            <select className="input" style={{ width: 150 }} value={f.audience} onChange={(e) => setF({ ...f, audience: e.target.value })}>
+              <option value="all">Alle</option>
+              <option value="staff">Bare staben</option>
+            </select>
+          </label>
+          <label className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>Bare versjon
+            <input className="input" style={{ width: 100 }} value={f.maxVersion} onChange={(e) => setF({ ...f, maxVersion: e.target.value })} placeholder="f.eks. 1.5.5" maxLength={12} aria-label="Bare versjon og eldre" />
+            <span className="hint">og eldre</span>
+          </label>
+          <button className="btn play" disabled={!f.title.trim() || (f.maxVersion && !/^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(f.maxVersion.trim()))}><Plus size={16} /> Publiser</button>
         </div>
       </form>
       <div className="admin-list">
@@ -242,7 +298,7 @@ function Announcements({ notify }) {
             <div className="grow">
               <strong>{a.title} <span className={`pill-role ${a.level === 'critical' ? 'banned' : a.level === 'warning' ? 'moderator' : ''}`}>{a.active ? 'Vises' : 'Av'}</span></strong>
               {a.body && <p>{a.body}</p>}
-              <small>{a.created_by} · {formatAgo(a.created_at)}</small>
+              <small>{a.created_by} · {formatAgo(a.created_at)}{a.audience === 'staff' ? ' · bare staben' : ''}{a.max_version ? ` · versjon ${a.max_version} og eldre` : ''}</small>
             </div>
             <button className="btn sm ghost" onClick={() => act(a, 'POST', { active: !a.active }, a.active ? 'Skrudd av' : 'Vises igjen')}>{a.active ? 'Skru av' : 'Vis'}</button>
             <button className="icon-btn" aria-label="Slett" title="Slett" onClick={() => act(a, 'DELETE', undefined, 'Slettet')}><Trash2 size={16} /></button>

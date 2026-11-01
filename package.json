@@ -1,7 +1,7 @@
 {
   "name": "fivem-norge-launcher",
   "productName": "FiveM Norge Launcher",
-  "version": "1.5.6",
+  "version": "1.6.0",
   "description": "Launcher for norske FiveM-servere med Discord-innlogging, søk og lagrede servere",
   "main": "electron/main.cjs",
   "author": "",

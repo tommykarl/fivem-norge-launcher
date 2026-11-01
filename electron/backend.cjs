@@ -105,7 +105,7 @@ function applyAccount(acc) {
   if (acc?.token) deps.setLauncherToken(acc.token);
   const prev = account;
   account = acc
-    ? { banned: !!acc.banned, banReason: acc.banReason || null, role: acc.role, roleInfo: roleInfoOf(acc), user: acc.user || null, shareStatus: !!acc.shareStatus }
+    ? { banned: !!acc.banned, banReason: acc.banReason || null, role: acc.role, roleInfo: roleInfoOf(acc), user: acc.user || null, shareStatus: !!acc.shareStatus, staffAnnouncements: Array.isArray(acc.staffAnnouncements) ? acc.staffAnnouncements.slice(0, 5) : [] }
     : null;
   if (prev && account && prev.roleInfo && JSON.stringify(prev.roleInfo) !== JSON.stringify(account.roleInfo)) {
     deps.onRoleChanged?.(account.roleInfo, prev.roleInfo);
@@ -224,6 +224,54 @@ async function setShareStatus(on) {
   return account;
 }
 
+// ---------- Lagrede servere følger kontoen ----------
+// Første gang på en PC slås lokale og lagrede på kontoen sammen; etterpå er kontoen fasit.
+async function syncFavorites() {
+  const token = deps?.getLauncherToken();
+  const uid = account?.user?.id;
+  if (!base || !token || !uid || account.banned) return null;
+  try {
+    const remote = (await call('/api/launcher/favorites', { token })).favorites || [];
+    const local = deps.store.getFavorites(uid);
+    let merged = remote;
+    if (!deps.store.favoritesSynced(uid)) {
+      const ids = new Set(remote.map((f) => f.id));
+      merged = [...remote, ...local.filter((f) => !ids.has(f.id))];
+      if (merged.length !== remote.length) await call('/api/launcher/favorites', { method: 'POST', token, body: { favorites: merged.map((f) => ({ id: f.id, name: f.name, at: f.addedAt || f.at })) } });
+    }
+    deps.store.setFavorites(uid, merged);
+    deps.emit('favorites:changed');
+    return merged;
+  } catch {
+    return null;
+  }
+}
+async function pushFavorites(list) {
+  const token = deps?.getLauncherToken();
+  if (!base || !token || !account || account.banned) return;
+  await call('/api/launcher/favorites', { method: 'POST', token, body: { favorites: list.map((f) => ({ id: f.id, name: f.name, at: f.addedAt })) } }).catch(() => {});
+}
+
+// ---------- Varsel når venner begynner å spille ----------
+let friendState = null; // Map id -> serverId|null
+async function pollFriends() {
+  const token = deps?.getLauncherToken();
+  if (!base || !token || !account || account.banned || !deps.friendAlerts()) return;
+  try {
+    const d = await call('/api/launcher/friends', { token });
+    const next = new Map((d.friends || []).map((f) => [f.id, f.playing?.serverId || null]));
+    if (friendState) {
+      for (const f of d.friends || []) {
+        const before = friendState.get(f.id);
+        if (f.playing && before !== f.playing.serverId) deps.notifyFriend(f.name, f.playing);
+      }
+    }
+    friendState = next;
+  } catch {
+    /* prøver igjen om litt */
+  }
+}
+
 // Kall fra grensesnittet. Bare adresser på denne lista er lov.
 const ALLOWED = [
   ['GET', /^\/api\/public\/(live|server\/[a-z0-9]{4,10})$/i, false],
@@ -234,6 +282,8 @@ const ALLOWED = [
   ['DELETE', /^\/api\/launcher\/friends\/\d{15,21}$/, true],
   ['POST', /^\/api\/launcher\/claim$/, true],
   ['GET', /^\/api\/launcher\/claims$/, true],
+  ['GET', /^\/api\/launcher\/my-servers$/, true],
+  ['POST', /^\/api\/launcher\/server-profile$/, true],
   ['GET', /^\/api\/admin\/[a-z0-9/?=&_.~-]*$/i, true],
   ['POST', /^\/api\/admin\/[a-z0-9/_.~-]+$/i, true],
   ['DELETE', /^\/api\/admin\/[a-z0-9/_.~-]+$/i, true],
@@ -291,6 +341,8 @@ function init(url, d) {
   setInterval(() => refreshConfig(false), CONFIG_EVERY);
   setInterval(() => sendPresence(false), PRESENCE_EVERY);
   setInterval(() => syncAccount(true), ACCOUNT_EVERY);
+  setInterval(pollFriends, 2 * 60_000);
+  setTimeout(() => syncFavorites().then(pollFriends), 6_000);
   setTimeout(() => hello(false).then(() => sendPresence(true)), 3_000);
 }
 
@@ -310,6 +362,10 @@ module.exports = {
   reportError,
   reportConnect,
   reportBug,
+  syncFavorites,
+  pushFavorites,
+  exportMyData: async () => call('/api/launcher/mydata', { token: deps.getLauncherToken() }),
+  deleteMyAccount: async () => call('/api/launcher/account', { method: 'DELETE', token: deps.getLauncherToken() }),
   syncAccount,
   sendSnapshot,
   setShareStatus,

@@ -254,6 +254,9 @@ export default function SettingsPage({
         <Row title="Windows-varsler" desc="Når en server du følger får ledig plass, kommer online eller du blir koblet til fra kø.">
           <Toggle label="Windows-varsler" checked={settings.notifications} onChange={(v) => setSetting({ notifications: v })} />
         </Row>
+        <Row title="Varsel når venner begynner å spille" desc="Bare for venner som har skrudd på «Vis venner hvor jeg spiller». Krever Windows-varsler.">
+          <Toggle label="Varsel når venner begynner å spille" checked={settings.friendAlerts !== false} onChange={(v) => setSetting({ friendAlerts: v })} />
+        </Row>
       </Section>
 
       <Section icon={Database} title="Lagring og cache">
@@ -311,6 +314,16 @@ export default function SettingsPage({
       </Section>
 
       <Section icon={Cloud} title="Personvern og tilkobling">
+        {user && backend?.enabled && (
+          <>
+            <Row title="Last ned mine data" desc="Alt fivemnorge.xyz har lagret om kontoen din, som en JSON-fil.">
+              <button className="btn" disabled={busy} onClick={() => run(async () => { const f = await api.backend.exportData(); if (f) notify('Dataene er lagret'); })}><Download size={16} /> Last ned</button>
+            </Row>
+            <Row title="Slett kontoen min" desc="Sletter kontoen din på fivemnorge.xyz: navn, profilbilde, anmeldelser, venner, lagrede servere og krav. Du blir logget ut.">
+              <button className="btn danger-ghost" onClick={() => setConfirm('delete-account')}><Trash2 size={16} /> Slett…</button>
+            </Row>
+          </>
+        )}
         <Row title="Personvernerklæring" desc="Hva launcheren og fivemnorge.xyz lagrer, hvor lenge, og hvordan du ber om innsyn eller sletting.">
           <button className="btn" onClick={() => api.openExternal(`${backend?.url || 'https://fivemnorge.xyz'}/personvern`)}><ExternalLink size={16} /> Les</button>
         </Row>
@@ -418,23 +431,30 @@ export default function SettingsPage({
         <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && setConfirm(null)}>
           <div className="modal" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
             <div className="modal-head">
-              <h2 id="confirm-title">{confirm === 'uninstall' ? 'Avinstallere launcheren?' : 'Nullstille launcheren?'}</h2>
+              <h2 id="confirm-title">{{ uninstall: 'Avinstallere launcheren?', reset: 'Nullstille launcheren?', 'delete-account': 'Slette kontoen din?' }[confirm]}</h2>
             </div>
             <div className="notice warn">
               <AlertTriangle size={16} />
-              {confirm === 'uninstall'
-                ? 'Launcheren lukkes og Windows-avinstalleringen starter.'
-                : 'Du blir logget ut, og lagrede servere, historikk og innstillinger slettes. Dette kan ikke angres.'}
+              {{
+                uninstall: 'Launcheren lukkes og Windows-avinstalleringen starter.',
+                reset: 'Du blir logget ut, og lagrede servere, historikk og innstillinger slettes. Dette kan ikke angres.',
+                'delete-account': 'Kontoen din på fivemnorge.xyz slettes med anmeldelser, venner, lagrede servere og krav. Feilmeldinger du har sendt blir anonyme. Dette kan ikke angres. Er du utestengt, beholdes bare utestengelsen.',
+              }[confirm]}
             </div>
             <div className="modal-actions">
               <button className="btn" onClick={() => setConfirm(null)}>Avbryt</button>
               <button
                 className="btn danger"
                 disabled={busy}
-                onClick={() => run(confirm === 'uninstall' ? () => api.app.uninstall() : () => api.data.resetAll())}
+                onClick={() =>
+                  run(
+                    { uninstall: () => api.app.uninstall(), reset: () => api.data.resetAll(), 'delete-account': async () => { await api.backend.deleteAccount(); onLogout?.(); } }[confirm],
+                    confirm === 'delete-account' ? 'Kontoen din er slettet' : undefined
+                  )
+                }
               >
                 {busy ? <Loader2 className="spin" size={16} /> : null}
-                {confirm === 'uninstall' ? 'Avinstaller' : 'Nullstill'}
+                {{ uninstall: 'Avinstaller', reset: 'Nullstill', 'delete-account': 'Slett kontoen' }[confirm]}
               </button>
             </div>
           </div>

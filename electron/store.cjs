@@ -59,4 +59,14 @@ function toggleFavorite(userId, server) {
   return data.favorites[userId];
 }
 
-module.exports = { saveSession, loadSession, getFavorites, toggleFavorite };
+// Lagrede servere fra fivemnorge.xyz (følger Discord-kontoen mellom PC-er)
+function setFavorites(userId, list) {
+  const data = read();
+  data.favorites[userId] = list.map((f) => ({ id: f.id, name: f.name || f.id, addedAt: f.addedAt || f.at || Date.now() }));
+  data.favSynced = { ...(data.favSynced || {}), [userId]: true };
+  write(data);
+  return data.favorites[userId];
+}
+const favoritesSynced = (userId) => !!read().favSynced?.[userId];
+
+module.exports = { saveSession, loadSession, getFavorites, toggleFavorite, setFavorites, favoritesSynced };

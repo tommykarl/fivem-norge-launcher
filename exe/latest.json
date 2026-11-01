@@ -1,11 +1,11 @@
 {
-  "version": "1.5.6",
-  "setup": "FiveM-Norge-Launcher-Setup-1.5.6.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.5.6.exe",
+  "version": "1.6.0",
+  "setup": "FiveM-Norge-Launcher-Setup-1.6.0.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.6.0.exe",
   "sha256": {
-    "setup": "de4b99891904ded7faf7c8ca09aa292035470010c8f8aa29dfb7e8eb1996dba3",
-    "portable": "c556bcdb0f833790d52121dccaf8b600a888dee88020ed303147a8cea7219779"
+    "setup": "2a9152380f4531e900958d1d541b1300b96c7c4caf2caf3dad2b36c49aa76639",
+    "portable": "f8864a5ba2972377678bdbab6b5afdbd2d813bd9f3a9ec3084b38b9f332db563"
   },
-  "notes": "Lenke til personvernerklæringen under Innstillinger → Personvern og tilkobling.",
-  "publishedAt": "2026-11-01T02:24:48.459Z"
+  "notes": "Nytt i 1.6.0:\n• Lagrede servere følger Discord-kontoen din mellom PC-er\n• Varsel når en venn begynner å spille (kan skrus av i Innstillinger)\n• Last ned eller slett dataene dine under Innstillinger → Personvern\n• Servereiere kan redigere serveren sin og se statistikk rett på serversiden\n• Staben: saker og advarsler per bruker, og kunngjøringer bare for staben",
+  "publishedAt": "2026-11-01T04:13:58.489Z"
 }

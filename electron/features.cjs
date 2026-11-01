@@ -20,6 +20,7 @@ const SETTINGS_SCHEMA = {
   autoUpdateCheck: 'bool',
   autoInstallUpdates: 'bool',
   telemetry: 'bool',
+  friendAlerts: 'bool',
   theme: ['dark', 'light', 'system'],
   accent: ['red', 'blue', 'green', 'purple', 'orange'],
 };
@@ -36,6 +37,7 @@ const SETTINGS_DEFAULT = {
   autoUpdateCheck: true,
   autoInstallUpdates: false,
   telemetry: true, // anonym statistikk og feilrapporter til egen backend
+  friendAlerts: true, // Windows-varsel når en venn begynner å spille (bare venner som deler det)
   theme: 'dark',
   accent: 'red',
 };

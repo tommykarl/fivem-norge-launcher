@@ -1,6 +1,7 @@
 const path = require('path');
+const fs = require('fs');
 const { spawn } = require('child_process');
-const { app, BrowserWindow, ipcMain, shell, Notification, session: electronSession } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Notification, dialog, session: electronSession } = require('electron');
 
 // Leser .env fra (1) prosjektmappa/app-pakken, (2) mappa der .exe ligger, (3) %APPDATA%\FiveM Norge Launcher
 // Første verdi som finnes vinner, så en .env ved siden av .exe kan overstyre den innebygde.
@@ -150,6 +151,17 @@ if (!app.requestSingleInstanceLock()) {
         else win?.webContents.send('toast', `Rollen din er nå ${now.name}`);
       },
       servers: () => fivem.cachedServers(),
+      store,
+      friendAlerts: () => features.getSettings().friendAlerts !== false && features.getSettings().notifications,
+      notifyFriend: (name, playing) => {
+        const n = new Notification({ title: `${name} spiller nå`, body: `${playing.name} – klikk for å se serveren`, icon: path.join(__dirname, 'icon.ico'), silent: false });
+        n.on('click', () => {
+          win?.show();
+          win?.focus();
+          win?.webContents.send('nav:server', playing.serverId);
+        });
+        n.show();
+      },
       activity: () => features.getActivity(),
       // Utestengt: logg ut av Discord i launcheren og vis beskjed
       onBanned: (acc) => {
@@ -320,6 +332,7 @@ ipcMain.handle('auth:login', async () => {
   session = await discord.login(CLIENT_ID, win);
   store.saveSession(session);
   const acc = await backend.hello(true);
+  if (acc && !acc.banned) await backend.syncFavorites();
   if (acc?.banned) throw new Error(`Kontoen din er utestengt fra FiveM Norge Launcher${acc.banReason ? `: ${acc.banReason}` : ''}`);
   return session.user;
 });
@@ -336,6 +349,7 @@ ipcMain.handle('auth:logout', () => {
 ipcMain.handle('fav:list', () => (session?.user ? store.getFavorites(session.user.id) : []));
 ipcMain.handle('fav:toggle', (_e, server) => {
   const r = store.toggleFavorite(requireUser().id, server);
+  backend.pushFavorites(r);
   refreshTray();
   return r;
 });
@@ -359,6 +373,28 @@ ipcMain.handle('backend:refresh', async () => {
 });
 ipcMain.handle('backend:api', (_e, method, path, body) => backend.api(method, path, body));
 ipcMain.handle('backend:share', (_e, on) => backend.setShareStatus(on));
+// Personvern: last ned alt fivemnorge.xyz har om deg, eller slett kontoen
+ipcMain.handle('backend:exportData', async () => {
+  const data = await backend.exportMyData();
+  const { canceled, filePath } = await dialog.showSaveDialog(win, {
+    title: 'Lagre dataene dine',
+    defaultPath: path.join(app.getPath('downloads'), `fivemnorge-mine-data-${new Date().toISOString().slice(0, 10)}.json`),
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+  });
+  if (canceled || !filePath) return null;
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  shell.showItemInFolder(filePath);
+  return filePath;
+});
+ipcMain.handle('backend:deleteAccount', async () => {
+  await backend.deleteMyAccount();
+  if (session?.user) store.setFavorites(session.user.id, []);
+  session = null;
+  backend.clearAccount();
+  communities.reset();
+  store.saveSession(null);
+  return true;
+});
 ipcMain.handle('backend:reportBug', (_e, r) => {
   const os = require('os');
   const system = r?.includeSystem
