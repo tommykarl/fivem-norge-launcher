@@ -1,11 +1,11 @@
 {
-  "version": "1.5.4",
-  "setup": "FiveM-Norge-Launcher-Setup-1.5.4.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.5.4.exe",
+  "version": "1.5.5",
+  "setup": "FiveM-Norge-Launcher-Setup-1.5.5.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.5.5.exe",
   "sha256": {
-    "setup": "896964b66c6ad6de88994d4da49e7dbdc9e4c448a9ba08a529245b6bcc453d35",
-    "portable": "ffee15afd2f7b03b787311c8abc875999212352090cd06eaae0910232d64e422"
+    "setup": "6b5c8990ae71cf749c34cf9c19319133eedf279e2a9e37c833a67ee76d3c56a7",
+    "portable": "1728fefc8e5cfea312f4dcaf598cce44c7a252cf4c620c52e97fcca7d807ab19"
   },
-  "notes": "Feilretting: «Tøm FiveM-cache» var låst selv om FiveM var lukket. Spilletid ble også feilregistrert mens launcheren var åpen. Begge deler er fikset.",
-  "publishedAt": "2026-11-01T01:01:02.297Z"
+  "notes": "Nytt: Servere kan ha sin egen connect-adresse (satt av staben). Launcheren kobler da til den i stedet for cfx.re-lenken.",
+  "publishedAt": "2026-11-01T01:32:20.577Z"
 }

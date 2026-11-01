@@ -40,8 +40,10 @@ export default function ServerPage({
   const played = activity.playtime[s.id];
   const last = activity.recent.find((r) => r.id === s.id);
 
+  // Egen connect satt i adminpanelet (f.eks. play.server.no), ellers vanlig cfx.re-lenke
+  const target = s.connect || `cfx.re/join/${s.id}`;
   const copy = async () => {
-    await navigator.clipboard.writeText(`connect cfx.re/join/${s.id}`);
+    await navigator.clipboard.writeText(`connect ${target}`);
     notify('Connect-kommando kopiert');
   };
 
@@ -68,7 +70,7 @@ export default function ServerPage({
                 {s.offline ? 'Offline' : full ? 'Full' : 'Online'}
               </span>
               <button className="copy" onClick={copy} title="Kopier connect-kommando">
-                cfx.re/join/{s.id} <Copy size={14} strokeWidth={1.8} />
+                {target} <Copy size={14} strokeWidth={1.8} />
               </button>
             </div>
           </div>

@@ -235,6 +235,14 @@ const refreshTray = () => {
   }
 };
 
+// Egen connect-adresse satt i adminpanelet (f.eks. play.server.no). Hentes fra backenden,
+// aldri fra grensesnittet, og må være en ren FiveM-adresse før den brukes.
+const CONNECT_RE = /^(?:cfx\.re\/join\/[a-z0-9]{4,10}|(?:(?:\d{1,3}\.){3}\d{1,3}|(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24})(?::\d{2,5})?)$/i;
+function customConnect(id) {
+  const c = String(backend.state().config?.servers?.[id]?.connect || '').trim();
+  return c && c.length <= 120 && CONNECT_RE.test(c) ? c : null;
+}
+
 async function connectTo(server) {
   const id = String(server?.id || '');
   if (!/^[a-z0-9]{4,10}$/i.test(id)) throw new Error('Ugyldig server-ID');
@@ -244,7 +252,7 @@ async function connectTo(server) {
   backend.reportConnect(id);
   win?.webContents.send('activity:changed');
   refreshTray();
-  await launchFiveM(`cfx.re/join/${id}`);
+  await launchFiveM(customConnect(id) || `cfx.re/join/${id}`);
   makeRoomForGame();
   return true;
 }

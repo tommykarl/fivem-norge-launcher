@@ -262,7 +262,7 @@ export default function App() {
     const ov = backend.config?.servers || {};
     return servers
       .filter((s) => !ov[s.id]?.hidden)
-      .map((s) => (ov[s.id] ? { ...s, verified: !!ov[s.id].verified, featured: !!ov[s.id].featured } : s));
+      .map((s) => (ov[s.id] ? { ...s, verified: !!ov[s.id].verified, featured: !!ov[s.id].featured, connect: ov[s.id].connect || null } : s));
   }, [servers, backend.config]);
   const totalPlayers = useMemo(() => shownServers.reduce((n, s) => n + s.clients, 0), [shownServers]);
 
