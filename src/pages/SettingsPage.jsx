@@ -311,6 +311,9 @@ export default function SettingsPage({
       </Section>
 
       <Section icon={Cloud} title="Personvern og tilkobling">
+        <Row title="Personvernerklæring" desc="Hva launcheren og fivemnorge.xyz lagrer, hvor lenge, og hvordan du ber om innsyn eller sletting.">
+          <button className="btn" onClick={() => api.openExternal(`${backend?.url || 'https://fivemnorge.xyz'}/personvern`)}><ExternalLink size={16} /> Les</button>
+        </Row>
         <Row
           title="Send anonym bruksstatistikk og feilrapporter"
           desc="Hjelper oss å se hvor mange som bruker launcheren, hvilke versjoner som er i bruk og hva som krasjer. Sender en tilfeldig ID per PC, versjon og feilmeldinger – aldri navn eller hva du spiller."
