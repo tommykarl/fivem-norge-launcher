@@ -1,21 +1,21 @@
 {
-  "version": "1.7.1",
-  "setup": "FiveM-Norge-Launcher-Setup-1.7.1.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.7.1.exe",
+  "version": "1.7.2",
+  "setup": "FiveM-Norge-Launcher-Setup-1.7.2.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.7.2.exe",
   "sha256": {
-    "setup": "dc9622b3654f6bfbb9e036c9edec4bfb230ccae177b6ae6f625f45090d23e2c3",
-    "portable": "7bfc775683fa795a6ef85808127b86b4d2780467c28abe3bf4ce4a6a215808c7"
+    "setup": "2be1085d1a141d2c2961254075890803fd8fe2c5a4d1340b8097f8a379e7c736",
+    "portable": "83442165f5fcea8fdfea2995b7719142242cecf1ea0ab8acb21da4c632d9a187"
   },
   "sizes": {
-    "setup": 82475486,
-    "portable": 82156046
+    "setup": 82490894,
+    "portable": 82171584
   },
   "asar": {
-    "file": "app-1.7.1.asar.gz",
-    "sha256": "befb0bd702f683850124d0333167cc45bf63bbdae99f85f35057aa6f2fd81f7c",
-    "size": 2004521,
+    "file": "app-1.7.2.asar.gz",
+    "sha256": "84fadb19171b61a66b8b0ef02fe6cfd7a4555f94ab68309abec7c40693eca4f4",
+    "size": 2014007,
     "electron": "33.4.11"
   },
-  "notes": "Nytt i 1.7.1:\n• Offentlig profil på fivemnorge.xyz (slås på under Venner, av som standard)\n• Ser etter ny versjon hver time mens launcheren er åpen\n• Tydelig melding når nettsiden har stengt for nye brukere (vedlikehold)",
-  "publishedAt": "2026-11-01T22:06:11.395Z"
+  "notes": "Nytt i 1.7.2:\n• «Spill nå» på fivemnorge.xyz åpner launcheren og kobler til (eller stiller deg i kø)\n• Logg inn med kode fra Min side\n• Varsler fra nettsiden (bjelle i menyen) og gruppekø med venner\n• Påminnelse om arrangementer du har sagt «Jeg kommer» til\n• Månedsoppsummering som kan lagres som bilde\n• Nyheter fra servereiere på serversiden\n• Skjulte og verifiserte servere oppdateres innen et minutt, nye filtre og sorteringer\n• Heter «FiveM Norge» i Oppgavebehandling (krever full installasjon)",
+  "publishedAt": "2026-11-02T01:04:33.775Z"
 }
