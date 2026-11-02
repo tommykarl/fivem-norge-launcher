@@ -9,7 +9,7 @@ const crypto = require('crypto');
 const { jsonFile } = require('./jsonfile.cjs');
 
 const installFile = jsonFile('install.json', { id: null });
-const CONFIG_EVERY = 5 * 60_000;
+const CONFIG_EVERY = 60_000; // skjulte/verifiserte servere og kunngjøringer slår inn innen et minutt
 const SNAPSHOT_EVERY = 5 * 60_000;
 const PRESENCE_EVERY = 2 * 60_000;
 const ACCOUNT_EVERY = 60_000; // roller og utestengelse synkes fra adminpanelet

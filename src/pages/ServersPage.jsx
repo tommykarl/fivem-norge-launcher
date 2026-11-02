@@ -8,6 +8,8 @@ import { formatAgo, formatDuration } from '../api.js';
 const CHIPS = [
   { id: 'alle', label: 'Alle' },
   { id: 'ledig', label: 'Ledige plasser' },
+  { id: 'fullt', label: 'Fullt' },
+  { id: 'verifisert', label: 'Verifisert' },
   { id: 'wl', label: 'Whitelist' },
   { id: 'fav', label: 'Lagrede' },
 ];
@@ -67,6 +69,8 @@ export default function ServersPage({
     }
     if (hideEmpty && view === 'servers') l = l.filter((s) => s.clients > 0);
     if (chip === 'ledig') l = l.filter((s) => !s.offline && (!s.max || s.clients < s.max));
+    if (chip === 'fullt') l = l.filter((s) => !s.offline && s.max && s.clients >= s.max);
+    if (chip === 'verifisert') l = l.filter((s) => s.verified);
     if (chip === 'wl') l = l.filter((s) => s.whitelist);
     if (chip === 'fav') l = l.filter((s) => favIds.has(s.id));
     if (view === 'recent') return l; // behold rekkefølgen "sist spilt først"
@@ -74,6 +78,9 @@ export default function ServersPage({
     if (sort === 'spillere') sorted.sort((a, b) => b.clients - a.clients);
     if (sort === 'navn') sorted.sort((a, b) => a.name.localeCompare(b.name, 'no'));
     if (sort === 'populær') sorted.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+    if (sort === 'ledige') sorted.sort((a, b) => Math.max(0, (b.max || 0) - b.clients) - Math.max(0, (a.max || 0) - a.clients) || b.clients - a.clients);
+    if (sort === 'verifisert') sorted.sort((a, b) => (b.verified ? 1 : 0) - (a.verified ? 1 : 0) || b.clients - a.clients);
+    if (sort === 'minst') sorted.sort((a, b) => a.clients - b.clients);
     return sorted;
   }, [base, query, chip, sort, favIds, view, hideEmpty]);
 
@@ -140,7 +147,10 @@ export default function ServersPage({
             <span className="sr-only">Sorter</span>
             <select value={sort} onChange={(e) => setSort(e.target.value)}>
               <option value="spillere">Flest spillere</option>
+              <option value="ledige">Flest ledige plasser</option>
+              <option value="verifisert">Verifiserte først</option>
               <option value="populær">Mest populær</option>
+              <option value="minst">Minst folk</option>
               <option value="navn">Navn A–Å</option>
             </select>
           </label>

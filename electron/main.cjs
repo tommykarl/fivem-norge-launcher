@@ -79,7 +79,14 @@ function createWindow() {
   // Med systemstatusfelt på skjuler lukk-knappen vinduet i stedet for å avslutte,
   // så varsler og kø fortsetter å virke.
   // Roller kan ha blitt endret i adminpanelet mens vinduet var i bakgrunnen
-  win.on('focus', () => backend.syncAccount(false));
+  win.on('focus', () => {
+    backend.syncAccount(false);
+    // Hent serverinnstillinger (skjult, verifisert …) når vinduet får fokus, maks hvert 20. sekund
+    if (Date.now() - (win.lastConfigAt || 0) > 20_000) {
+      win.lastConfigAt = Date.now();
+      backend.refresh();
+    }
+  });
   win.on('close', (e) => {
     if (!quitting && appctl.hasTray()) {
       e.preventDefault();
