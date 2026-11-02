@@ -181,6 +181,8 @@ async function trackTick() {
   } else {
     if (pending && now - pending.requested > 10 * 60_000) pending = null;
     if (a.active && ++misses >= END_AFTER_MISSES) {
+      // Økta er over: lengden sendes som sum per server (når på døgnet folk logger av)
+      if (a.active.id) deps.report?.({ serverId: a.active.id, event: 'session', minutes: Math.round(((a.active.lastSeen || now) - a.active.startedAt) / 60_000) });
       a.active = null;
       misses = 0;
       activityFile.save(true);
@@ -311,7 +313,16 @@ function setWatch(id, name, patch) {
   if (!ID_RE.test(id)) throw new Error('Ugyldig server-ID');
   const w = watchFile.get().watch;
   const cur = w[id] || { name, free: false, online: false, autoJoin: false, threshold: null, wasFull: null, wasOnline: null, wasAbove: null };
+  const wasQueued = !!cur.autoJoin;
   for (const k of ['free', 'online', 'autoJoin']) if (typeof patch?.[k] === 'boolean') cur[k] = patch[k];
+  // Kø-statistikk til eieren (bare summer): stilte seg i kø / ga opp
+  if (!wasQueued && cur.autoJoin) {
+    cur.queuedAt = Date.now();
+    deps?.report?.({ serverId: id, event: 'start' });
+  } else if (wasQueued && !cur.autoJoin && !patch?.joined) {
+    deps?.report?.({ serverId: id, event: 'gaveup' });
+    cur.queuedAt = null;
+  }
   if (patch && 'threshold' in patch) {
     const t = Number(patch.threshold);
     cur.threshold = Number.isFinite(t) && t >= 1 && t <= 4096 ? Math.round(t) : null;
@@ -374,6 +385,8 @@ async function watchTick() {
           if (!o.free && !o.online && !o.threshold) delete w[oid];
         }
         cfg.autoJoin = false;
+        deps.report?.({ serverId: id, event: 'joined', waited: cfg.queuedAt ? Math.round((Date.now() - cfg.queuedAt) / 1000) : 0 });
+        cfg.queuedAt = null;
         if (!cfg.free && !cfg.online && !cfg.threshold) delete w[id];
         deps.notify(
           `Kobler til ${cfg.name}`,

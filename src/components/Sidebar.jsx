@@ -1,4 +1,4 @@
-import { Clock, Home, LogOut, Server, Settings, ShieldCheck, Star, Users } from 'lucide-react';
+import { Bell, Clock, Home, KeyRound, LogOut, Server, Settings, ShieldCheck, Star, Users } from 'lucide-react';
 import DiscordIcon from './DiscordIcon.jsx';
 import { LEVELS } from '../status.js';
 
@@ -9,7 +9,7 @@ const NAV = [
   { id: 'recent', label: 'Nylig spilt', icon: Clock, countKey: 'recent' },
 ];
 
-export default function Sidebar({ user, authBusy, onLogin, onLogout, route, go, counts, totalPlayers, updateAvailable, statusLevel, isStaff, showFriends, roleInfo }) {
+export default function Sidebar({ user, authBusy, onLogin, onLogout, route, go, counts, totalPlayers, updateAvailable, statusLevel, isStaff, showFriends, roleInfo, unread, onOpenNotifs, onCodeLogin }) {
   const lvl = LEVELS[statusLevel || 'unknown'];
   const active = route.name === 'server' ? route.from || 'servers' : route.name;
   const nav = [
@@ -82,15 +82,26 @@ export default function Sidebar({ user, authBusy, onLogin, onLogout, route, go, 
                 <small>Discord tilkoblet</small>
               )}
             </div>
+            <button className="icon-btn bell-btn" onClick={onOpenNotifs} aria-label={unread ? `Varsler, ${unread} uleste` : 'Varsler'} title="Varsler">
+              <Bell size={16} />
+              {unread > 0 && <em className="bell-count">{unread > 9 ? '9+' : unread}</em>}
+            </button>
             <button className="icon-btn" onClick={onLogout} aria-label="Logg ut" title="Logg ut">
               <LogOut size={16} />
             </button>
           </div>
         ) : (
-          <button className="btn discord full" onClick={onLogin} disabled={authBusy}>
-            <DiscordIcon />
-            {authBusy ? 'Venter på Discord…' : 'Logg inn med Discord'}
-          </button>
+          <>
+            <button className="btn discord full" onClick={onLogin} disabled={authBusy}>
+              <DiscordIcon />
+              {authBusy ? 'Venter på Discord…' : 'Logg inn med Discord'}
+            </button>
+            {showFriends && (
+              <button className="text-btn code-login" onClick={onCodeLogin}>
+                <KeyRound size={14} /> Logg inn med kode fra nettsiden
+              </button>
+            )}
+          </>
         )}
       </div>
     </aside>

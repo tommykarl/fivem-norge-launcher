@@ -2,10 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { Play, RefreshCw, UserMinus, UserPlus } from 'lucide-react';
 import { api, errText } from '../api.js';
 import DiscordIcon from '../components/DiscordIcon.jsx';
+import GroupCard from '../components/GroupCard.jsx';
 
 // Venner er gjensidige: begge må legge hverandre til. Hvor man spiller vises bare
 // når vennen selv har skrudd på «Vis venner hvor jeg spiller».
-export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, notify, onShareChanged }) {
+export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, notify, onShareChanged, servers = [] }) {
   const [data, setData] = useState(null);
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState('');
@@ -100,6 +101,8 @@ export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, 
           <RefreshCw size={14} className={busy ? 'spin' : ''} /> Oppdater
         </button>
       </div>
+
+      {user && <GroupCard servers={servers} notify={notify} />}
 
       <section className="card">
         <div className="card-head">

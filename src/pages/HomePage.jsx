@@ -19,7 +19,7 @@ function MiniRow({ server, sub, onOpen, right }) {
 }
 
 export default function HomePage({
-  user, servers, favorites, activity, watch, totalPlayers, onOpen, onPlay, go, onLogin, authBusy,
+  user, servers, favorites, activity, watch, totalPlayers, onOpen, onPlay, go, onLogin, authBusy, onMonth,
 }) {
   const byId = new Map(servers.map((s) => [s.id, s]));
   const [communities, setCommunities] = useState({ loading: true });
@@ -87,6 +87,25 @@ export default function HomePage({
 
       <div className="home-grid">
         <WeekCard refreshKey={Math.floor((activity.totalMs || 0) / 60_000)} onOpen={onOpen} />
+        {onMonth && (() => {
+          const d = new Date();
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          const prev = new Date(d.getFullYear(), d.getMonth() - 1, 15);
+          const pkey = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+          return (
+            <section className="card month-card">
+              <div className="card-head">
+                <h2>Månedsoppsummering</h2>
+                <Clock size={18} strokeWidth={1.8} className="muted-icon" />
+              </div>
+              <p className="muted-sm">Timer, dager og favorittservere – lagre som bilde og del med vennene dine.</p>
+              <div className="form-row">
+                <button className="btn sm" onClick={() => onMonth(key)}>Denne måneden</button>
+                <button className="btn ghost sm" onClick={() => onMonth(pkey)}>Forrige måned</button>
+              </div>
+            </section>
+          );
+        })()}
         <section className="card">
           <div className="card-head">
             <h2>Lagrede servere</h2>

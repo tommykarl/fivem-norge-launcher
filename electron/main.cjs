@@ -96,15 +96,71 @@ function createWindow() {
   else win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
 }
 
+// ---------- fivemnorge://-lenker fra nettsiden («Spill nå», gruppekø) ----------
+const PROTOCOL = 'fivemnorge';
+try {
+  if (process.defaultApp && process.argv.length >= 2) app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [path.resolve(process.argv[1])]);
+  else app.setAsDefaultProtocolClient(PROTOCOL, process.env.PORTABLE_EXECUTABLE_FILE || process.execPath);
+} catch (e) {
+  console.warn('[lenker]', e.message);
+}
+let pendingLink = null;
+let appReady = false;
+const linkFrom = (argv) => (argv || []).find((a) => typeof a === 'string' && a.toLowerCase().startsWith(`${PROTOCOL}://`)) || null;
+async function handleLink(raw) {
+  if (!raw) return;
+  if (!appReady) {
+    pendingLink = raw;
+    return;
+  }
+  const m = String(raw).replace(/^fivemnorge:\/\//i, '').replace(/\/+$/, '').match(/^(connect|queue|server|group)\/([a-z0-9]{4,12})$/i);
+  if (!m) return;
+  const kind = m[1].toLowerCase();
+  const id = m[2].toLowerCase();
+  win?.show();
+  win?.focus();
+  try {
+    if (kind === 'group') {
+      if (!/^[a-f0-9]{10}$/.test(id)) return;
+      await backend.api('POST', `/api/launcher/group/${id}/join`, {}).catch(() => null);
+      await backend.pollGroup();
+      win?.webContents.send('nav:page', 'friends');
+      return;
+    }
+    if (!/^[a-z0-9]{4,10}$/.test(id)) return;
+    const list = await fivem.listServers(false).catch(() => fivem.cachedServers());
+    const s = list.find((x) => x.id === id);
+    const name = s?.name || id;
+    if (kind === 'server') {
+      win?.webContents.send('nav:server', id);
+      return;
+    }
+    // Full server (eller «queue»): still i kø, ellers koble til med en gang
+    if (kind === 'queue' || (s && s.max && s.clients >= s.max)) {
+      features.setWatch(id, name, { autoJoin: true });
+      win?.webContents.send('nav:server', id);
+      notify(`Du står i kø på ${name}`, 'Launcheren kobler deg til når det blir ledig plass.', id);
+    } else {
+      win?.webContents.send('nav:server', id);
+      await connectTo({ id, name });
+      win?.webContents.send('toast', `Starter FiveM og kobler til ${name}`);
+    }
+  } catch (e) {
+    notify('Kunne ikke åpne lenken', e.message);
+  }
+}
+
 // Når vi bare kjører én instans, sørg for at et nytt forsøk åpner eksisterende vindu
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  app.on('second-instance', () => {
+  pendingLink = linkFrom(process.argv);
+  app.on('second-instance', (_e, argv) => {
     if (win) {
       if (win.isMinimized()) win.restore();
       win.focus();
     }
+    handleLink(linkFrom(argv));
   });
 
   app.whenReady().then(() => {
@@ -129,6 +185,7 @@ if (!app.requestSingleInstanceLock()) {
       connect: connectTo,
       notify,
       presence,
+      report: (ev) => backend.reportQueue(ev),
       emit: (ch, payload) => {
         win?.webContents.send(ch, payload);
         if (ch === 'activity:changed') refreshTray();
@@ -163,6 +220,50 @@ if (!app.requestSingleInstanceLock()) {
         n.show();
       },
       activity: () => features.getActivity(),
+      connect: connectTo,
+      notify,
+      // Varsel fra nettsiden (venneforespørsel, nyhet, gruppe …) som systemvarsel
+      notifyItem: (n) => {
+        if (!features.getSettings().notifications || !Notification.isSupported()) return;
+        const x = new Notification({ title: n.title, body: n.body || '', icon: path.join(__dirname, 'icon.ico') });
+        x.on('click', () => {
+          win?.show();
+          win?.focus();
+          backend.readNotifs({ ids: [n.id] }).catch(() => {});
+          const srv = /^\/server\/([a-z0-9]{4,10})$/.exec(n.url || '');
+          if (srv) win?.webContents.send('nav:server', srv[1]);
+          else if (n.kind === 'friend' || n.kind === 'group') win?.webContents.send('nav:page', 'friends');
+          else if (n.url && backend.state().url) shell.openExternal(`${backend.state().url}${n.url}`);
+        });
+        x.show();
+      },
+      // «Jeg kommer»: påminnelse en time før og når det starter – klikk for å koble til
+      eventReminder: (e, kind) => {
+        if (!Notification.isSupported()) return;
+        let when = '';
+        try {
+          when = new Date(e.starts_at).toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' });
+        } catch {}
+        const x = new Notification({
+          title: kind === 'start' ? `${e.title} starter nå` : `${e.title} starter kl ${when}`,
+          body: e.server_id ? `${e.server_name || 'Serveren'} – klikk for å koble til` : 'Du har sagt at du kommer',
+          icon: path.join(__dirname, 'icon.ico'),
+        });
+        x.on('click', () => {
+          win?.show();
+          win?.focus();
+          if (e.server_id) connectTo({ id: e.server_id, name: e.server_name || e.server_id }).catch((er) => notify('Kunne ikke koble til', er.message));
+        });
+        x.show();
+        win?.webContents.send('toast', kind === 'start' ? `${e.title} starter nå` : `${e.title} starter kl ${when}`);
+      },
+      // Logget ut fra Min side (eller nøkkelen er ugyldig)
+      onSignedOut: (msg) => {
+        session = null;
+        communities.reset();
+        store.saveSession(null);
+        win?.webContents.send('auth:signedOut', msg || 'Du er logget ut');
+      },
       // Utestengt: logg ut av Discord i launcheren og vis beskjed
       onBanned: (acc) => {
         session = null;
@@ -184,6 +285,8 @@ if (!app.requestSingleInstanceLock()) {
       console.warn('[oppstart]', e.message);
     }
     createWindow();
+    appReady = true;
+    if (pendingLink) win.webContents.once('did-finish-load', () => setTimeout(() => handleLink(pendingLink), 1200));
     status.start((level, prev) => {
       win?.webContents.send('status:changed', level);
       if (!features.getSettings().notifications) return;
@@ -315,6 +418,8 @@ async function launchFiveM(target) {
 // ---- Discord ----
 ipcMain.handle('auth:session', async () => {
   if (!session) return null;
+  // Logget inn med kode: ingen Discord-nøkkel å sjekke
+  if (!session.token) return session.user || null;
   try {
     // Oppdater brukerinfo (navn/avatar) og verifiser at token fortsatt er gyldig
     session.user = await discord.fetchUser(session.token);
@@ -336,6 +441,33 @@ ipcMain.handle('auth:login', async () => {
   if (acc?.banned) throw new Error(`Kontoen din er utestengt fra FiveM Norge Launcher${acc.banReason ? `: ${acc.banReason}` : ''}`);
   return session.user;
 });
+
+// Logg inn med kode fra Min side på fivemnorge.xyz
+ipcMain.handle('auth:codeStart', () => backend.codeStart());
+ipcMain.handle('auth:codePoll', async (_e, poll) => {
+  // Midlertidig økt, så nøkkelen fra nettsiden har et sted å lagres
+  const before = session;
+  if (!session) session = { token: null, viaCode: true, user: null, fnlToken: null };
+  let r;
+  try {
+    r = await backend.codePoll(String(poll || ''));
+  } catch (e) {
+    if (!before) session = null;
+    throw e;
+  }
+  if (r.pending) {
+    if (!before) session = null;
+    return { pending: true };
+  }
+  const u = r.user || {};
+  session = { ...session, token: before?.token || null, viaCode: !before?.token, user: { id: u.id, username: u.username, displayName: u.name || u.username, avatar: u.avatar } };
+  store.saveSession(session);
+  if (!r.account?.banned) await backend.syncFavorites();
+  return { user: session.user };
+});
+ipcMain.handle('notifs:get', () => backend.getNotifs());
+ipcMain.handle('notifs:read', (_e, body) => backend.readNotifs(body || {}));
+ipcMain.handle('group:get', () => backend.pollGroup().then(() => backend.getGroup()));
 
 ipcMain.handle('auth:logout', () => {
   session = null;

@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('launcher', {
     session: () => ipcRenderer.invoke('auth:session'),
     login: () => ipcRenderer.invoke('auth:login'),
     logout: () => ipcRenderer.invoke('auth:logout'),
+    codeStart: () => ipcRenderer.invoke('auth:codeStart'),
+    codePoll: (poll) => ipcRenderer.invoke('auth:codePoll', poll),
   },
   favorites: {
     list: () => ipcRenderer.invoke('fav:list'),
@@ -44,6 +46,13 @@ contextBridge.exposeInMainWorld('launcher', {
     deleteAccount: () => ipcRenderer.invoke('backend:deleteAccount'),
     reportError: (err) => ipcRenderer.send('report:error', { message: String(err?.message || err), stack: String(err?.stack || '') }),
   },
+  notifs: {
+    get: () => ipcRenderer.invoke('notifs:get'),
+    read: (body) => ipcRenderer.invoke('notifs:read', body),
+  },
+  group: {
+    get: () => ipcRenderer.invoke('group:get'),
+  },
   status: {
     get: (force = false) => ipcRenderer.invoke('status:get', force),
   },
@@ -56,7 +65,7 @@ contextBridge.exposeInMainWorld('launcher', {
   },
   // Hendelser fra hovedprosessen. Returnerer en funksjon som fjerner lytteren.
   on: (channel, fn) => {
-    const allowed = ['toast', 'nav:server', 'watch:changed', 'activity:changed', 'status:changed', 'update:progress', 'backend:changed', 'backend:banned', 'favorites:changed'];
+    const allowed = ['toast', 'nav:server', 'watch:changed', 'activity:changed', 'status:changed', 'update:progress', 'backend:changed', 'backend:banned', 'favorites:changed', 'notifs:changed', 'group:changed', 'auth:signedOut', 'nav:page'];
     if (!allowed.includes(channel)) return () => {};
     const handler = (_e, payload) => fn(payload);
     ipcRenderer.on(channel, handler);

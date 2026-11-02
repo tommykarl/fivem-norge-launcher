@@ -15,6 +15,9 @@ import ComparePage from './pages/ComparePage.jsx';
 import ConnectModal from './components/ConnectModal.jsx';
 import ShortcutsModal from './components/ShortcutsModal.jsx';
 import Announcements from './components/Announcements.jsx';
+import CodeLoginModal from './components/CodeLoginModal.jsx';
+import NotifsModal from './components/NotifsModal.jsx';
+import MonthModal, { monthStats } from './components/MonthModal.jsx';
 import { api, errText } from './api.js';
 
 const BACK_LABELS = { home: 'Hjem', servers: 'Alle servere', saved: 'Lagrede', recent: 'Nylig spilt', settings: 'Innstillinger', status: 'FiveM-status', compare: 'Sammenligning' };
@@ -45,6 +48,8 @@ export default function App() {
   const [focusSignal, setFocusSignal] = useState(0);
   const [iconKey, setIconKey] = useState(0);
   const [whatsNew, setWhatsNew] = useState(null);
+  const [notifs, setNotifs] = useState({ unread: 0, items: [] });
+  const [month, setMonth] = useState(null); // månedsoppsummering som vises
   const [appVersion, setAppVersion] = useState(null);
   const toastTimer = useRef(null);
   const mainRef = useRef(null);
@@ -103,6 +108,23 @@ export default function App() {
     loadBackend();
     loadStatus();
     api.app.whatsNew?.().then((w) => w && setWhatsNew(w)).catch(() => {});
+    api.notifs.get().then((n) => n && setNotifs(n)).catch(() => {});
+    // Månedsoppsummering: vises én gang ved første oppstart i en ny måned (for forrige måned)
+    setTimeout(() => {
+      try {
+        const d = new Date();
+        const prev = new Date(d.getFullYear(), d.getMonth() - 1, 15);
+        const key = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+        if (localStorage.getItem('fnl-month-shown') === key) return;
+        Promise.all([api.activity.get(), api.servers.list(false).catch(() => [])]).then(([a, list]) => {
+          const st = monthStats(a, list, key);
+          localStorage.setItem('fnl-month-shown', key);
+          if (st.total >= 30 * 60_000) setMonth(st);
+        });
+      } catch {
+        /* ikke viktig */
+      }
+    }, 4000);
     api.app.info().then((i) => setAppVersion(i?.version || null)).catch(() => {});
     const st = setInterval(() => loadStatus(), 3 * 60_000);
     // Ser etter ny versjon hver time også når launcheren står åpen (eller ligger ved klokka)
@@ -145,6 +167,13 @@ export default function App() {
         setFavorites([]);
       }),
       api.on('nav:server', (id) => go({ name: 'server', id })),
+      api.on('nav:page', (name) => go({ name })),
+      api.on('notifs:changed', (n) => n && setNotifs(n)),
+      api.on('auth:signedOut', (msg) => {
+        setUser(null);
+        setFavorites([]);
+        notify(msg || 'Du er logget ut');
+      }),
       api.on('update:progress', (pct) => setUpdateState((cur) => (cur?.phase === 'downloading' ? { ...cur, pct } : cur))),
     ];
     // Globale hurtigtaster (se ShortcutsModal for liste)
@@ -379,6 +408,9 @@ export default function App() {
           isStaff={isStaff}
           roleInfo={backend.account?.banned ? null : backend.account?.roleInfo}
           showFriends={!!backend.enabled}
+          unread={notifs.unread}
+          onOpenNotifs={() => setModal('notifs')}
+          onCodeLogin={() => setModal('code')}
         />
 
         <main className="main" ref={mainRef} key={iconKey}>
@@ -396,6 +428,7 @@ export default function App() {
               go={go}
               onLogin={login}
               authBusy={authBusy}
+              onMonth={(k) => setMonth(monthStats(activity, servers, k))}
             />
           )}
 
@@ -436,6 +469,7 @@ export default function App() {
               onPlay={connect}
               notify={notify}
               onShareChanged={loadBackend}
+              servers={shownServers}
             />
           )}
 
@@ -523,6 +557,28 @@ export default function App() {
 
       {modal === 'connect' && <ConnectModal onClose={() => setModal(null)} notify={notify} onConnected={loadActivity} />}
       {modal === 'shortcuts' && <ShortcutsModal onClose={() => setModal(null)} />}
+      {modal === 'code' && (
+        <CodeLoginModal
+          onClose={() => setModal(null)}
+          notify={notify}
+          onDone={async (u) => {
+            setModal(null);
+            setUser(u);
+            setFavorites(await api.favorites.list().catch(() => []));
+            loadBackend();
+          }}
+        />
+      )}
+      {modal === 'notifs' && (
+        <NotifsModal
+          notifs={notifs}
+          siteUrl={backend.url}
+          onClose={() => setModal(null)}
+          onOpenServer={(id) => go({ name: 'server', id })}
+          onOpenFriends={() => go({ name: 'friends' })}
+        />
+      )}
+      {month && <MonthModal stats={month} userName={user?.displayName} onClose={() => setMonth(null)} />}
       {whatsNew && <WhatsNewModal info={whatsNew} onClose={() => setWhatsNew(null)} />}
 
       {modal === 'cache' && (

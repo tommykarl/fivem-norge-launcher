@@ -69,6 +69,19 @@ export default function ServerCommunity({ server, user, backendEnabled, notify }
 
   return (
     <>
+      {info?.news?.length > 0 && (
+        <section className="card">
+          <div className="card-head"><h2>Nyheter fra serveren</h2></div>
+          <ul className="news-list">
+            {info.news.map((n) => (
+              <li key={n.id}>
+                <div className="row-gap"><b>{n.title}</b><small className="muted-sm">{new Date(n.at).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long' })}</small></div>
+                <p style={{ whiteSpace: 'pre-wrap' }}>{n.body}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {info?.profile && (
         <section className="card">
           <div className="card-head">

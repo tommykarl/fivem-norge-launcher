@@ -2,7 +2,7 @@
   "name": "fivem-norge-launcher",
   "productName": "FiveM Norge Launcher",
   "version": "1.7.1",
-  "description": "Launcher for norske FiveM-servere med Discord-innlogging, søk og lagrede servere",
+  "description": "FiveM Norge",
   "main": "electron/main.cjs",
   "author": "",
   "license": "MIT",
@@ -83,6 +83,14 @@
         "owner": "tommykarl",
         "repo": "fivem-norge-launcher",
         "releaseType": "release"
+      }
+    ],
+    "protocols": [
+      {
+        "name": "FiveM Norge",
+        "schemes": [
+          "fivemnorge"
+        ]
       }
     ]
   },
