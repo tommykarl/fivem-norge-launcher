@@ -63,10 +63,11 @@ function startStreamDeckBridge() {
     const origin = req.headers.origin;
     // Inspector trenger lesetilgang fra Stream Deck. Tilkoblingskallet godtar ikke
     // nettleser-origin, slik at en vilkårlig nettside ikke kan starte FiveM.
-    if (req.method === 'OPTIONS' && req.url === '/favorites' && origin === 'null') {
+    if (req.method === 'OPTIONS' && ['/', '/favorites', '/auth/session', '/auth/code/start', '/auth/code/poll'].includes(req.url) && origin === 'null') {
       res.writeHead(204, {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'content-type',
         'Access-Control-Allow-Private-Network': 'true',
       });
       return res.end();
@@ -76,9 +77,21 @@ function startStreamDeckBridge() {
       res.end(JSON.stringify(body));
     };
     try {
+      if (req.method === 'GET' && req.url === '/auth/session') {
+        if (origin && origin !== 'null') return send(403, { error: 'Ikke tillatt' });
+        const codeUser = session?.user && session?.viaCode ? session.user : null;
+        return send(200, { loggedIn: !!codeUser, user: codeUser }, origin === 'null');
+      }
+      if ((req.method === 'POST' && req.url === '/auth/code/start') || (req.method === 'POST' && req.url === '/auth/code/poll')) {
+        if (origin !== 'null') return send(403, { error: 'Ikke tillatt' });
+        if (req.url === '/auth/code/start') return send(200, await backend.codeStart(), true);
+        let raw = '';
+        for await (const chunk of req) { raw += chunk; if (raw.length > 2048) throw new Error('Forespørselen er for stor'); }
+        return send(200, await pollCodeLogin(JSON.parse(raw || '{}').poll), true);
+      }
       if (req.method === 'GET' && req.url === '/favorites') {
         if (origin && origin !== 'null') return send(403, { error: 'Ikke tillatt' });
-        return send(200, session?.user ? store.getFavorites(session.user.id) : [], origin === 'null');
+        return send(200, session?.user && session?.viaCode ? store.getFavorites(session.user.id) : [], origin === 'null');
       }
       if (req.method === 'GET' && req.url === '/status') {
         const s = await status.get(false);
@@ -89,7 +102,7 @@ function startStreamDeckBridge() {
         let raw = '';
         for await (const chunk of req) { raw += chunk; if (raw.length > 2048) throw new Error('Forespørselen er for stor'); }
         const { id } = JSON.parse(raw || '{}');
-        if (!session?.user) return send(401, { error: 'Logg inn i FiveM Norge Launcher' });
+        if (!session?.user || !session?.viaCode) return send(401, { error: 'Logg inn med kode via Stream Deck' });
         const favorite = store.getFavorites(session.user.id).find((f) => f.id === id);
         if (!favorite) return send(404, { error: 'Favoritten finnes ikke' });
         await connectTo(favorite);
@@ -504,7 +517,7 @@ ipcMain.handle('auth:login', async () => {
 
 // Logg inn med kode fra Min side på fivemnorge.xyz
 ipcMain.handle('auth:codeStart', () => backend.codeStart());
-ipcMain.handle('auth:codePoll', async (_e, poll) => {
+async function pollCodeLogin(poll) {
   // Midlertidig økt, så nøkkelen fra nettsiden har et sted å lagres
   const before = session;
   if (!session) session = { token: null, viaCode: true, user: null, fnlToken: null };
@@ -520,11 +533,12 @@ ipcMain.handle('auth:codePoll', async (_e, poll) => {
     return { pending: true };
   }
   const u = r.user || {};
-  session = { ...session, token: before?.token || null, viaCode: !before?.token, user: { id: u.id, username: u.username, displayName: u.name || u.username, avatar: u.avatar } };
+  session = { ...session, token: before?.token || null, viaCode: true, user: { id: u.id, username: u.username, displayName: u.name || u.username, avatar: u.avatar } };
   store.saveSession(session);
   if (!r.account?.banned) await backend.syncFavorites();
   return { user: session.user };
-});
+}
+ipcMain.handle('auth:codePoll', (_e, poll) => pollCodeLogin(poll));
 ipcMain.handle('notifs:get', () => backend.getNotifs());
 ipcMain.handle('notifs:read', (_e, body) => backend.readNotifs(body || {}));
 ipcMain.handle('group:get', () => backend.pollGroup().then(() => backend.getGroup()));

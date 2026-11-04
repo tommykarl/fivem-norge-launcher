@@ -53,7 +53,7 @@ Pluginen ligger i `streamdeck/` og har to handlinger: **Koble til favorittserver
 1. Bygg pluginen med `cd streamdeck`, `npm install` og `npm run build`.
 2. Pakk installeringsfilen med `npx @elgato/cli pack no.fivemnorge.launcher.sdPlugin --output .`.
 3. Åpne `no.fivemnorge.launcher.streamDeckPlugin` for å installere pluginen.
-4. Legg til **Koble til favorittserver**, og velg favoritten i handlingens innstillinger. **Vis FiveM-status** oppdateres hvert 30. sekund.
+4. Legg til **Koble til favorittserver**. Hvis du ikke allerede har godkjent kodeinnlogging i launcheren, åpner handlingens innstillinger en kode du godkjenner på Min side. Velg deretter favorittserveren. **Vis FiveM-status** oppdateres hvert 30. sekund.
 
 Launcheren må kjøre for at Stream Deck skal kunne lese favoritter og FiveM-status. Den lokale broen lytter kun på `127.0.0.1:53135`.
 
