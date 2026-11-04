@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
-const { app, BrowserWindow, ipcMain, shell, Notification, dialog, session: electronSession } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Notification, dialog, nativeImage, session: electronSession } = require('electron');
 
 // Leser .env fra (1) prosjektmappa/app-pakken, (2) mappa der .exe ligger, (3) %APPDATA%\FiveM Norge Launcher
 // Første verdi som finnes vinner, så en .env ved siden av .exe kan overstyre den innebygde.
@@ -63,7 +63,7 @@ function startStreamDeckBridge() {
     const origin = req.headers.origin;
     // Inspector trenger lesetilgang fra Stream Deck. Tilkoblingskallet godtar ikke
     // nettleser-origin, slik at en vilkårlig nettside ikke kan starte FiveM.
-    if (req.method === 'OPTIONS' && ['/', '/favorites', '/auth/session', '/auth/code/start', '/auth/code/poll'].includes(req.url) && origin === 'null') {
+    if (req.method === 'OPTIONS' && (['/', '/favorites', '/auth/session', '/auth/code/start', '/auth/code/poll'].includes(req.url) || req.url.startsWith('/favorite-icon?')) && origin === 'null') {
       res.writeHead(204, {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -92,6 +92,46 @@ function startStreamDeckBridge() {
       if (req.method === 'GET' && req.url === '/favorites') {
         if (origin && origin !== 'null') return send(403, { error: 'Ikke tillatt' });
         return send(200, session?.user && session?.viaCode ? store.getFavorites(session.user.id) : [], origin === 'null');
+      }
+      if (req.method === 'GET' && req.url.startsWith('/favorite-icon?')) {
+        if (origin && origin !== 'null') return send(403, { error: 'Ikke tillatt' });
+        if (!session?.user || !session?.viaCode) return send(401, { error: 'Logg inn med kode via Stream Deck' }, origin === 'null');
+        const id = new URL(req.url, 'http://127.0.0.1').searchParams.get('id') || '';
+        if (!store.getFavorites(session.user.id).some((f) => f.id === id)) return send(404, { error: 'Favoritten finnes ikke' }, origin === 'null');
+        const detail = await fivem.getServer(id);
+        const imageUrl = detail.iconUrl || detail.icons?.find((url) => /^https:\/\/(frontend\.cfx-services\.net|servers-frontend\.fivem\.net)\/api\/servers\/icon\//.test(url));
+        if (!imageUrl) return send(200, { image: null }, origin === 'null');
+        const imageResponse = await fetch(imageUrl, { headers: CFX_HEADERS, signal: AbortSignal.timeout(8000) });
+        const type = imageResponse.headers.get('content-type') || '';
+        if (!imageResponse.ok || !type.startsWith('image/')) return send(200, { image: null }, origin === 'null');
+        const bytes = Buffer.from(await imageResponse.arrayBuffer());
+        if (bytes.length > 512 * 1024) return send(200, { image: null }, origin === 'null');
+        return send(200, { image: `data:${type};base64,${bytes.toString('base64')}` }, origin === 'null');
+      }
+      if (req.method === 'GET' && req.url === '/brand-icon') {
+        if (origin && origin !== 'null') return send(403, { error: 'Ikke tillatt' });
+        const site = 'https://fivemnorge.xyz';
+        const page = await fetch(site, { signal: AbortSignal.timeout(7000) }).catch(() => null);
+        const html = page?.ok ? await page.text().catch(() => '') : '';
+        const links = [...html.matchAll(/<link\b[^>]*>/gi)].map(([tag]) => tag)
+          .filter((tag) => /rel=["'][^"']*icon/i.test(tag))
+          .map((tag) => tag.match(/href=["']([^"']+)["']/i)?.[1])
+          .filter(Boolean);
+        const candidates = [...links, '/favicon.ico'].map((href) => new URL(href, site));
+        let image = null;
+        for (const url of candidates) {
+          if (url.origin !== site) continue;
+          try {
+            const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
+            const type = response.headers.get('content-type') || '';
+            if (!response.ok || !type.startsWith('image/')) continue;
+            const bytes = Buffer.from(await response.arrayBuffer());
+            if (!bytes.length || bytes.length > 512 * 1024) continue;
+            const png = nativeImage.createFromBuffer(bytes).toPNG();
+            if (png.length) { image = `data:image/png;base64,${png.toString('base64')}`; break; }
+          } catch { /* prøv neste ikonadresse */ }
+        }
+        return send(200, { image }, origin === 'null');
       }
       if (req.method === 'GET' && req.url === '/status') {
         const s = await status.get(false);

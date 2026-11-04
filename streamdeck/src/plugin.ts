@@ -13,8 +13,36 @@ type FavoriteSettings = { serverId?: string };
 
 @action({ UUID: 'no.fivemnorge.launcher.favorite' })
 class FavoriteAction extends SingletonAction<FavoriteSettings> {
+  private icons = new Map<string, string>();
+
+  private async updateIcon(id?: string, setImage?: (image?: string) => Promise<void>) {
+    id = id?.trim();
+    if (!id) {
+      await setImage?.(undefined);
+      return;
+    }
+    try {
+      let image = this.icons.get(id);
+      if (!image) {
+        const result = await request(`/favorite-icon?id=${encodeURIComponent(id)}`);
+        image = result.image;
+        if (image) this.icons.set(id, image);
+      }
+      await setImage?.(image || undefined);
+    } catch (error) {
+      streamDeck.logger.warn(`Kunne ikke hente serverlogo: ${String(error)}`);
+    }
+  }
+
+  override onWillAppear(ev: WillAppearEvent<FavoriteSettings>) {
+    void this.updateIcon(ev.payload.settings.serverId, ev.action.setImage.bind(ev.action));
+  }
+
   override async onSendToPlugin(ev: SendToPluginEvent<{ serverId?: string }, FavoriteSettings>) {
-    if (typeof ev.payload.serverId === 'string') await ev.action.setSettings({ serverId: ev.payload.serverId.trim() });
+    if (typeof ev.payload.serverId === 'string') {
+      await ev.action.setSettings({ serverId: ev.payload.serverId.trim() });
+      await this.updateIcon(ev.payload.serverId, ev.action.setImage.bind(ev.action));
+    }
   }
 
   override async onKeyDown(ev: KeyDownEvent<FavoriteSettings>) {
@@ -34,6 +62,7 @@ type StatusSettings = { };
 @action({ UUID: 'no.fivemnorge.launcher.status' })
 class StatusAction extends SingletonAction<StatusSettings> {
   private timers = new Map<string, ReturnType<typeof setInterval>>();
+  private brandIcon: string | null | undefined;
 
   override onWillAppear(ev: WillAppearEvent<StatusSettings>) {
     const previous = this.timers.get(ev.action.id);
@@ -47,6 +76,17 @@ class StatusAction extends SingletonAction<StatusSettings> {
         ev.action.setTitle('FiveM\nOffline');
       }
     };
+    void (async () => {
+      try {
+        if (this.brandIcon === undefined) {
+          const result = await request('/brand-icon');
+          this.brandIcon = result.image || null;
+        }
+        if (this.brandIcon) await ev.action.setImage(this.brandIcon);
+      } catch (error) {
+        streamDeck.logger.warn(`Kunne ikke hente FiveM Norge-ikonet: ${String(error)}`);
+      }
+    })();
     void update();
     this.timers.set(ev.action.id, setInterval(update, 30_000));
   }
