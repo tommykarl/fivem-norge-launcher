@@ -1,21 +1,21 @@
 {
-  "version": "1.7.2",
-  "setup": "FiveM-Norge-Launcher-Setup-1.7.2.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.7.2.exe",
+  "version": "1.7.4",
+  "setup": "FiveM-Norge-Launcher-Setup-1.7.4.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.7.4.exe",
   "sha256": {
-    "setup": "2be1085d1a141d2c2961254075890803fd8fe2c5a4d1340b8097f8a379e7c736",
-    "portable": "83442165f5fcea8fdfea2995b7719142242cecf1ea0ab8acb21da4c632d9a187"
+    "setup": "014002a651b9b00831946617b50ba35c9aff62b0f4446ebeb171308265b7c89d",
+    "portable": "c27f5368c08b01ea44b5b8176a8b392698491c3f671c2e5267d43206aa20ce97"
   },
   "sizes": {
-    "setup": 82490894,
-    "portable": 82171584
+    "setup": 82914434,
+    "portable": 75289282
   },
   "asar": {
-    "file": "app-1.7.2.asar.gz",
-    "sha256": "84fadb19171b61a66b8b0ef02fe6cfd7a4555f94ab68309abec7c40693eca4f4",
-    "size": 2014007,
+    "file": "app-1.7.4.asar.gz",
+    "sha256": "15ea68f30c1451989c7205531764f7af7e8318863acd651018772a7dc58fba5c",
+    "size": 2015029,
     "electron": "33.4.11"
   },
-  "notes": "Nytt i 1.7.2:\n• «Spill nå» på fivemnorge.xyz åpner launcheren og kobler til (eller stiller deg i kø)\n• Logg inn med kode fra Min side\n• Varsler fra nettsiden (bjelle i menyen) og gruppekø med venner\n• Påminnelse om arrangementer du har sagt «Jeg kommer» til\n• Månedsoppsummering som kan lagres som bilde\n• Nyheter fra servereiere på serversiden\n• Skjulte og verifiserte servere oppdateres innen et minutt, nye filtre og sorteringer\n• Heter «FiveM Norge» i Oppgavebehandling (krever full installasjon)",
-  "publishedAt": "2026-11-02T01:04:33.775Z"
+  "notes": "Stream Deck: kodeinnlogging for favorittservere",
+  "publishedAt": "2026-11-04T19:54:00.391Z"
 }
