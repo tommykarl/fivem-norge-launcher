@@ -25,7 +25,6 @@ const { CFX_HEADERS } = require('./cfxHttp.cjs');
 const status = require('./status.cjs');
 const backend = require('./backend.cjs');
 const { jsonFile } = require('./jsonfile.cjs');
-const http = require('http');
 const versionFile = jsonFile('version.json', { last: null, notes: {} });
 
 process.on('uncaughtException', (e) => {
@@ -54,69 +53,6 @@ let win;
 let session = null;
 let quitting = false;
 let trayHintShown = false;
-let streamDeckServer = null;
-
-// Lokal bro til Stream Deck. Lytter bare på loopback og eksponerer kun favoritter,
-// samlet FiveM-status og tilkobling til en favoritt.
-function startStreamDeckBridge() {
-  const server = http.createServer(async (req, res) => {
-    const origin = req.headers.origin;
-    // Inspector trenger lesetilgang fra Stream Deck. Tilkoblingskallet godtar ikke
-    // nettleser-origin, slik at en vilkårlig nettside ikke kan starte FiveM.
-    if (req.method === 'OPTIONS' && ['/', '/favorites', '/auth/session', '/auth/code/start', '/auth/code/poll'].includes(req.url) && origin === 'null') {
-      res.writeHead(204, {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'content-type',
-        'Access-Control-Allow-Private-Network': 'true',
-      });
-      return res.end();
-    }
-    const send = (code, body, cors = false) => {
-      res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', ...(cors ? { 'Access-Control-Allow-Origin': '*' } : {}) });
-      res.end(JSON.stringify(body));
-    };
-    try {
-      if (req.method === 'GET' && req.url === '/auth/session') {
-        if (origin && origin !== 'null') return send(403, { error: 'Ikke tillatt' });
-        const codeUser = session?.user && session?.viaCode ? session.user : null;
-        return send(200, { loggedIn: !!codeUser, user: codeUser }, origin === 'null');
-      }
-      if ((req.method === 'POST' && req.url === '/auth/code/start') || (req.method === 'POST' && req.url === '/auth/code/poll')) {
-        if (origin !== 'null') return send(403, { error: 'Ikke tillatt' });
-        if (req.url === '/auth/code/start') return send(200, await backend.codeStart(), true);
-        let raw = '';
-        for await (const chunk of req) { raw += chunk; if (raw.length > 2048) throw new Error('Forespørselen er for stor'); }
-        return send(200, await pollCodeLogin(JSON.parse(raw || '{}').poll), true);
-      }
-      if (req.method === 'GET' && req.url === '/favorites') {
-        if (origin && origin !== 'null') return send(403, { error: 'Ikke tillatt' });
-        return send(200, session?.user && session?.viaCode ? store.getFavorites(session.user.id) : [], origin === 'null');
-      }
-      if (req.method === 'GET' && req.url === '/status') {
-        const s = await status.get(false);
-        return send(200, { level: s.level, updatedAt: s.at });
-      }
-      if (req.method === 'POST' && req.url === '/connect') {
-        if (origin) return send(403, { error: 'Ikke tillatt' });
-        let raw = '';
-        for await (const chunk of req) { raw += chunk; if (raw.length > 2048) throw new Error('Forespørselen er for stor'); }
-        const { id } = JSON.parse(raw || '{}');
-        if (!session?.user || !session?.viaCode) return send(401, { error: 'Logg inn med kode via Stream Deck' });
-        const favorite = store.getFavorites(session.user.id).find((f) => f.id === id);
-        if (!favorite) return send(404, { error: 'Favoritten finnes ikke' });
-        await connectTo(favorite);
-        return send(200, { ok: true });
-      }
-      return send(404, { error: 'Fant ikke endepunktet' });
-    } catch (e) {
-      return send(400, { error: e.message || 'Ukjent feil' });
-    }
-  });
-  server.on('error', (e) => console.warn('[Stream Deck]', e.message));
-  server.listen(53135, '127.0.0.1');
-  streamDeckServer = server;
-}
 
 function createWindow() {
   win = new BrowserWindow({
@@ -235,7 +171,6 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.whenReady().then(() => {
-    startStreamDeckBridge();
     // Nødvendig for at Windows-varsler skal vises med riktig navn
     if (process.platform === 'win32') app.setAppUserModelId('no.fivemnorge.launcher');
     session = store.loadSession();
@@ -375,7 +310,6 @@ if (!app.requestSingleInstanceLock()) {
 
 app.on('before-quit', () => {
   quitting = true;
-  streamDeckServer?.close();
   presence.stop();
 });
 
@@ -517,7 +451,7 @@ ipcMain.handle('auth:login', async () => {
 
 // Logg inn med kode fra Min side på fivemnorge.xyz
 ipcMain.handle('auth:codeStart', () => backend.codeStart());
-async function pollCodeLogin(poll) {
+ipcMain.handle('auth:codePoll', async (_e, poll) => {
   // Midlertidig økt, så nøkkelen fra nettsiden har et sted å lagres
   const before = session;
   if (!session) session = { token: null, viaCode: true, user: null, fnlToken: null };
@@ -533,12 +467,11 @@ async function pollCodeLogin(poll) {
     return { pending: true };
   }
   const u = r.user || {};
-  session = { ...session, token: before?.token || null, viaCode: true, user: { id: u.id, username: u.username, displayName: u.name || u.username, avatar: u.avatar } };
+  session = { ...session, token: before?.token || null, viaCode: !before?.token, user: { id: u.id, username: u.username, displayName: u.name || u.username, avatar: u.avatar } };
   store.saveSession(session);
   if (!r.account?.banned) await backend.syncFavorites();
   return { user: session.user };
-}
-ipcMain.handle('auth:codePoll', (_e, poll) => pollCodeLogin(poll));
+});
 ipcMain.handle('notifs:get', () => backend.getNotifs());
 ipcMain.handle('notifs:read', (_e, body) => backend.readNotifs(body || {}));
 ipcMain.handle('group:get', () => backend.pollGroup().then(() => backend.getGroup()));
