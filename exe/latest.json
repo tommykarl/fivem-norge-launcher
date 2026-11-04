@@ -1,21 +1,21 @@
 {
-  "version": "1.7.5",
-  "setup": "FiveM-Norge-Launcher-Setup-1.7.5.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.7.5.exe",
+  "version": "1.7.4",
+  "setup": "FiveM-Norge-Launcher-Setup-1.7.4.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.7.4.exe",
   "sha256": {
-    "setup": "d04055cbea6d75ca6f65f9a0b5d31e07da9b751f9a93f4d11f888955de8da294",
-    "portable": "9d2161eaf3e0ef4c60f0a7e275792632eaae177c995411b65f80dfeb6da1b1cf"
+    "setup": "014002a651b9b00831946617b50ba35c9aff62b0f4446ebeb171308265b7c89d",
+    "portable": "c27f5368c08b01ea44b5b8176a8b392698491c3f671c2e5267d43206aa20ce97"
   },
   "sizes": {
-    "setup": 82914946,
-    "portable": 82595948
+    "setup": 82914434,
+    "portable": 75289282
   },
   "asar": {
-    "file": "app-1.7.5.asar.gz",
-    "sha256": "ef4531679cd28ede910c6f455f6459b465f5183b12772f634ce8fbcae85f83c6",
-    "size": 2015739,
+    "file": "app-1.7.4.asar.gz",
+    "sha256": "15ea68f30c1451989c7205531764f7af7e8318863acd651018772a7dc58fba5c",
+    "size": 2015029,
     "electron": "33.4.11"
   },
-  "notes": "Stream Deck-statusikon fra fivemnorge.xyz",
-  "publishedAt": "2026-11-04T20:03:46.751Z"
+  "notes": "Stream Deck: kodeinnlogging for favorittservere",
+  "publishedAt": "2026-11-04T19:54:00.391Z"
 }
