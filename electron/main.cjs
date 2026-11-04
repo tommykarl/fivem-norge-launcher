@@ -25,6 +25,7 @@ const { CFX_HEADERS } = require('./cfxHttp.cjs');
 const status = require('./status.cjs');
 const backend = require('./backend.cjs');
 const { jsonFile } = require('./jsonfile.cjs');
+const http = require('http');
 const versionFile = jsonFile('version.json', { last: null, notes: {} });
 
 process.on('uncaughtException', (e) => {
@@ -53,6 +54,56 @@ let win;
 let session = null;
 let quitting = false;
 let trayHintShown = false;
+let streamDeckServer = null;
+
+// Lokal bro til Stream Deck. Lytter bare på loopback og eksponerer kun favoritter,
+// samlet FiveM-status og tilkobling til en favoritt.
+function startStreamDeckBridge() {
+  const server = http.createServer(async (req, res) => {
+    const origin = req.headers.origin;
+    // Inspector trenger lesetilgang fra Stream Deck. Tilkoblingskallet godtar ikke
+    // nettleser-origin, slik at en vilkårlig nettside ikke kan starte FiveM.
+    if (req.method === 'OPTIONS' && req.url === '/favorites' && origin === 'null') {
+      res.writeHead(204, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Private-Network': 'true',
+      });
+      return res.end();
+    }
+    const send = (code, body, cors = false) => {
+      res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', ...(cors ? { 'Access-Control-Allow-Origin': '*' } : {}) });
+      res.end(JSON.stringify(body));
+    };
+    try {
+      if (req.method === 'GET' && req.url === '/favorites') {
+        if (origin && origin !== 'null') return send(403, { error: 'Ikke tillatt' });
+        return send(200, session?.user ? store.getFavorites(session.user.id) : [], origin === 'null');
+      }
+      if (req.method === 'GET' && req.url === '/status') {
+        const s = await status.get(false);
+        return send(200, { level: s.level, updatedAt: s.at });
+      }
+      if (req.method === 'POST' && req.url === '/connect') {
+        if (origin) return send(403, { error: 'Ikke tillatt' });
+        let raw = '';
+        for await (const chunk of req) { raw += chunk; if (raw.length > 2048) throw new Error('Forespørselen er for stor'); }
+        const { id } = JSON.parse(raw || '{}');
+        if (!session?.user) return send(401, { error: 'Logg inn i FiveM Norge Launcher' });
+        const favorite = store.getFavorites(session.user.id).find((f) => f.id === id);
+        if (!favorite) return send(404, { error: 'Favoritten finnes ikke' });
+        await connectTo(favorite);
+        return send(200, { ok: true });
+      }
+      return send(404, { error: 'Fant ikke endepunktet' });
+    } catch (e) {
+      return send(400, { error: e.message || 'Ukjent feil' });
+    }
+  });
+  server.on('error', (e) => console.warn('[Stream Deck]', e.message));
+  server.listen(53135, '127.0.0.1');
+  streamDeckServer = server;
+}
 
 function createWindow() {
   win = new BrowserWindow({
@@ -171,6 +222,7 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.whenReady().then(() => {
+    startStreamDeckBridge();
     // Nødvendig for at Windows-varsler skal vises med riktig navn
     if (process.platform === 'win32') app.setAppUserModelId('no.fivemnorge.launcher');
     session = store.loadSession();
@@ -310,6 +362,7 @@ if (!app.requestSingleInstanceLock()) {
 
 app.on('before-quit', () => {
   quitting = true;
+  streamDeckServer?.close();
   presence.stop();
 });
 

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "Actions": [
+    { "Icon": "imgs/action", "Name": "Koble til favorittserver", "PropertyInspectorPath": "ui/favorite.html", "States": [{ "Image": "imgs/action" }], "UUID": "no.fivemnorge.launcher.favorite" },
+    { "Icon": "imgs/action", "Name": "Vis FiveM-status", "States": [{ "Image": "imgs/action" }], "UUID": "no.fivemnorge.launcher.status" }
+  ],
+  "Author": "FiveM Norge",
+  "CodePath": "bin/plugin.js",
+  "Description": "Koble til favorittservere og se FiveM-status fra FiveM Norge Launcher.",
+  "Icon": "imgs/plugin",
+  "Name": "FiveM Norge Launcher",
+  "Nodejs": { "Version": "20" },
+  "OS": [{ "Platform": "windows", "MinimumVersion": "10" }],
+  "SDKVersion": 2,
+  "Software": { "MinimumVersion": "6.7" },
+  "UUID": "no.fivemnorge.launcher",
+  "Version": "1.0.0.0"
+}

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="no">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Favorittserver</title>
+<style>
+  body { margin: 0; padding: 12px; color: #eee; background: #2d2d2d; font: 13px system-ui, sans-serif; }
+  label { display: block; margin-bottom: 7px; }
+  select { width: 100%; padding: 7px; color: #eee; background: #1e1e1e; border: 1px solid #555; border-radius: 4px; }
+  #hint { margin-top: 8px; color: #bbb; }
+</style></head>
+<body>
+  <label for="favorite">Favorittserver</label>
+  <select id="favorite"><option value="">Laster favoritter …</option></select>
+  <div id="hint">Launcheren må være åpen og du må være logget inn.</div>
+<script>
+  const select = document.querySelector('#favorite');
+  const hint = document.querySelector('#hint');
+  let ws, context, action;
+  const persist = () => {
+    if (ws?.readyState === WebSocket.OPEN && context) {
+      ws.send(JSON.stringify({ action, context, event: 'sendToPlugin', payload: { serverId: select.value } }));
+    }
+  };
+  select.addEventListener('change', persist);
+  async function loadFavorites() {
+    try {
+      const res = await fetch('http://127.0.0.1:53135/favorites');
+      const favorites = await res.json();
+      select.replaceChildren(new Option('Velg server …', ''));
+      favorites.forEach((f) => select.add(new Option(f.name, f.id)));
+      if (!favorites.length) hint.textContent = 'Ingen favoritter. Logg inn og lagre servere i launcheren.';
+      else hint.textContent = 'Velg en lagret favorittserver.';
+    } catch { hint.textContent = 'Start FiveM Norge Launcher for å laste favorittene.'; }
+  }
+  window.connectElgatoStreamDeckSocket = (port, uuid, registerEvent, info, actionInfo) => {
+    const details = JSON.parse(actionInfo);
+    context = details.context;
+    action = details.action;
+    ws = new WebSocket(`ws://127.0.0.1:${port}`);
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ event: registerEvent, uuid }));
+      ws.send(JSON.stringify({ action, context, event: 'getSettings' }));
+      loadFavorites();
+    };
+    ws.onmessage = ({ data }) => {
+      const msg = JSON.parse(data);
+      if (msg.event === 'didReceiveSettings' && msg.payload.settings?.serverId) {
+        select.value = msg.payload.settings.serverId;
+        if (!select.value) select.add(new Option(msg.payload.settings.serverId, msg.payload.settings.serverId));
+      }
+    };
+  };
+</script></body></html>

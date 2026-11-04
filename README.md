@@ -47,6 +47,16 @@ Repoet må være **offentlig**, ellers får ikke launcheren lest exe-mappa.
 ## Discord-status med bilde
 Last opp et bilde med navnet `logo` under **Rich Presence → Art Assets** i Discord-appen din for å få logo i statusen.
 
+## Stream Deck
+Pluginen ligger i `streamdeck/` og har to handlinger: **Koble til favorittserver** og **Vis FiveM-status**.
+
+1. Bygg pluginen med `cd streamdeck`, `npm install` og `npm run build`.
+2. Kopier `streamdeck/FiveMNorge.sdPlugin` til `%APPDATA%/Elgato/StreamDeck/Plugins/`.
+3. Start Stream Deck på nytt. Legg til **Koble til favorittserver**, og velg favoritten i handlingens innstillinger.
+4. Legg til **Vis FiveM-status** for å vise statusen. Den oppdateres hvert 30. sekund.
+
+Launcheren må kjøre for at Stream Deck skal kunne lese favoritter og FiveM-status. Den lokale broen lytter kun på `127.0.0.1:53135`.
+
 ## Kjøre
 ```bash
 npm install
