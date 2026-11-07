@@ -28,7 +28,7 @@ export default function StatusPage({ status, onRefresh, refreshing }) {
         <span className="muted-sm">{status ? `Sist sjekket ${formatAgo(status.at)}` : ''}</span>
       </div>
 
-      <section className={`status-hero ${level.cls}`} aria-live="polite">
+      <section className={`status-hero pc ${{ ok: 'pc-mint', warn: 'pc-sand', down: 'pc-rose', maint: 'pc-slate' }[level.cls] || 'pc-slate'} ${level.cls}`} aria-live="polite">
         <Mountains />
         <div className="status-hero-body">
           <div className="status-icon"><Icon size={30} strokeWidth={2} /></div>

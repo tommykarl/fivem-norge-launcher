@@ -389,11 +389,18 @@ export default function App() {
     return [...staff, ...list];
   }, [backend.config, backend.account, appVersion, isStaff]);
   const counts = { servers: shownServers.length, saved: favorites.length, recent: activity.recent.length };
+  const TOP_TITLES = { home: 'Hjem', servers: 'Servere', saved: 'Servere', recent: 'Servere', friends: 'Venner', admin: 'Admin', status: 'FiveM-status', compare: 'Sammenligning', settings: 'Innstillinger' };
+  const topTitle = route.name === 'server' ? routeServer?.name || 'Server' : TOP_TITLES[route.name] || 'FiveM Norge';
+  const openSearch = () => {
+    setModal(null);
+    setRoute((r) => (['servers', 'saved', 'recent'].includes(r.name) ? r : { name: 'servers' }));
+    setFocusSignal((n) => n + 1);
+  };
+  const SERVER_TABS = [['servers', 'Alle servere', counts.servers], ['saved', 'Lagrede', counts.saved], ['recent', 'Nylig spilt', counts.recent]];
 
   return (
     <div className={`app${settings?.compact ? ' compact' : ''}`}>
-      <TitleBar />
-      <div className="body">
+      <div className="frame">
         <Sidebar
           user={user}
           authBusy={authBusy}
@@ -408,13 +415,37 @@ export default function App() {
           isStaff={isStaff}
           roleInfo={backend.account?.banned ? null : backend.account?.roleInfo}
           showFriends={!!backend.enabled}
-          unread={notifs.unread}
-          onOpenNotifs={() => setModal('notifs')}
           onCodeLogin={() => setModal('code')}
+          onCache={() => setModal('cache')}
         />
 
+        <div className="content">
+        <TitleBar
+          title={topTitle}
+          totalPlayers={totalPlayers}
+          serverCount={counts.servers}
+          user={user}
+          roleInfo={backend.account?.banned ? null : backend.account?.roleInfo}
+          unread={notifs.unread}
+          showBell={!!user}
+          onOpenNotifs={() => setModal('notifs')}
+          onSearch={openSearch}
+          onLogin={login}
+          authBusy={authBusy}
+        />
         <main className="main" ref={mainRef} key={iconKey}>
           <Announcements items={announcements} banned={banned} />
+          {['servers', 'saved', 'recent'].includes(route.name) && (
+            <nav className="num-tabs" aria-label="Visning">
+              {SERVER_TABS.map(([id, label, n], i) => (
+                <button key={id} className={route.name === id ? 'on' : ''} aria-current={route.name === id ? 'page' : undefined} onClick={() => go({ name: id })}>
+                  <span className="n">{String(i + 1).padStart(2, '0')}</span>
+                  {label}
+                  <em>{n}</em>
+                </button>
+              ))}
+            </nav>
+          )}
           {route.name === 'home' && (
             <HomePage
               user={user}
@@ -540,6 +571,7 @@ export default function App() {
             />
           )}
         </main>
+        </div>
       </div>
 
       {compareIds.length > 0 && route.name !== 'compare' && (

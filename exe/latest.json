@@ -1,21 +1,21 @@
 {
-  "version": "1.7.2",
-  "setup": "FiveM-Norge-Launcher-Setup-1.7.2.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.7.2.exe",
+  "version": "1.8.0",
+  "setup": "FiveM-Norge-Launcher-Setup-1.8.0.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.8.0.exe",
   "sha256": {
-    "setup": "2be1085d1a141d2c2961254075890803fd8fe2c5a4d1340b8097f8a379e7c736",
-    "portable": "83442165f5fcea8fdfea2995b7719142242cecf1ea0ab8acb21da4c632d9a187"
+    "setup": "db98b4fc5d27e347fdcd3c20135eae906903e78c1a571871ee93b84fb831cba8",
+    "portable": "1f3e7727c93dce054013d55afe9ec65db8f3ed342c2086bd443fab70be312723"
   },
   "sizes": {
-    "setup": 82490894,
-    "portable": 82171584
+    "setup": 82492972,
+    "portable": 82173656
   },
   "asar": {
-    "file": "app-1.7.2.asar.gz",
-    "sha256": "84fadb19171b61a66b8b0ef02fe6cfd7a4555f94ab68309abec7c40693eca4f4",
-    "size": 2014007,
+    "file": "app-1.8.0.asar.gz",
+    "sha256": "db7569f9593d8719040410584ea829b80bd60b7653d6777d53a517cc34fe84e1",
+    "size": 2015876,
     "electron": "33.4.11"
   },
-  "notes": "Nytt i 1.7.2:\n• «Spill nå» på fivemnorge.xyz åpner launcheren og kobler til (eller stiller deg i kø)\n• Logg inn med kode fra Min side\n• Varsler fra nettsiden (bjelle i menyen) og gruppekø med venner\n• Påminnelse om arrangementer du har sagt «Jeg kommer» til\n• Månedsoppsummering som kan lagres som bilde\n• Nyheter fra servereiere på serversiden\n• Skjulte og verifiserte servere oppdateres innen et minutt, nye filtre og sorteringer\n• Heter «FiveM Norge» i Oppgavebehandling (krever full installasjon)",
-  "publishedAt": "2026-11-02T01:04:33.775Z"
+  "notes": "Nytt i 1.8.0 – nytt design:\n• Samme utseende som nettsiden og adminpanelet: svart ramme, ikonmeny til venstre og pastellkort\n• Ny topplinje med søk (Ctrl K), spillere nå, varsler og profilbildet ditt\n• FiveM-status som skjold i menyen – grønt, gult eller rødt\n• Lagrede og Nylig spilt er faner på Servere-siden\n• Runde knapper og filtre, og serversiden har fått et nytt banner\n• Fungerer i både mørk og lys modus",
+  "publishedAt": "2026-11-07T12:16:20.679Z"
 }

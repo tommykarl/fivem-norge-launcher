@@ -166,7 +166,7 @@ export default function ServersPage({
       </div>
 
       {hero && (
-        <section className="hero" aria-label={hero.featured ? 'Fremhevet server' : 'Mest spilt nå'}>
+        <section className={hero.banner ? 'hero' : 'hero pc pc-mint'} aria-label={hero.featured ? 'Fremhevet server' : 'Mest spilt nå'}>
           {hero.banner ? <div className="hero-img" style={{ backgroundImage: `url("${encodeURI(hero.banner)}")` }} /> : <Mountains />}
           <div className="hero-body">
             <div className="hero-left">

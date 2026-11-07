@@ -57,14 +57,10 @@ export default function HomePage({
           <div className="muted-md">{greeting()},</div>
           <h1 className="home-title">{user ? user.displayName : 'velkommen'}</h1>
         </div>
-        <div className="muted-md live-inline">
-          <span className="dot" />
-          <span><b>{totalPlayers.toLocaleString('no')}</b> spillere på <b>{servers.length}</b> norske servere</span>
-        </div>
       </div>
 
       {feature && (
-        <section className="hero compact" aria-label={continueServer ? 'Fortsett der du slapp' : 'Mest spilt nå'}>
+        <section className="hero compact pc pc-mint" aria-label={continueServer ? 'Fortsett der du slapp' : 'Mest spilt nå'}>
           <Mountains />
           <div className="hero-body">
             <div className="hero-left">
@@ -93,7 +89,7 @@ export default function HomePage({
           const prev = new Date(d.getFullYear(), d.getMonth() - 1, 15);
           const pkey = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
           return (
-            <section className="card month-card">
+            <section className="card month-card pc pc-olive">
               <div className="card-head">
                 <h2>Månedsoppsummering</h2>
                 <Clock size={18} strokeWidth={1.8} className="muted-icon" />
@@ -106,7 +102,7 @@ export default function HomePage({
             </section>
           );
         })()}
-        <section className="card">
+        <section className="card pc pc-slate">
           <div className="card-head">
             <h2>Lagrede servere</h2>
             <button className="text-btn" onClick={() => go({ name: 'saved' })}>Se alle</button>
@@ -122,7 +118,7 @@ export default function HomePage({
           })}
         </section>
 
-        <section className="card">
+        <section className="card pc pc-lilac">
           <div className="card-head">
             <h2>Fra dine Discord-servere</h2>
             <Users size={18} strokeWidth={1.8} className="muted-icon" />

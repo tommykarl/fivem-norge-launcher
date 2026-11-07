@@ -18,7 +18,7 @@ export default function WeekCard({ refreshKey, onOpen }) {
   const label = `Spilletid denne uka: ${w.days.map((d, i) => `${DAYS[i]} ${formatDuration(d.ms)}`).join(', ')}`;
 
   return (
-    <section className="card">
+    <section className="card pc pc-sand">
       <div className="card-head">
         <h2>Denne uka</h2>
         <CalendarDays size={18} strokeWidth={1.8} className="muted-icon" />

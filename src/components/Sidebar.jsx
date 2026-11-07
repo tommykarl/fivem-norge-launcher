@@ -1,106 +1,71 @@
-import { Bell, Clock, Home, KeyRound, LogOut, Server, Settings, ShieldCheck, Star, Users } from 'lucide-react';
+import { Home, KeyRound, LogIn, LogOut, Server, Settings, ShieldCheck, Users, Wrench } from 'lucide-react';
 import DiscordIcon from './DiscordIcon.jsx';
 import { LEVELS } from '../status.js';
+import logo from '../assets/logo.png';
 
-const NAV = [
-  { id: 'home', label: 'Hjem', icon: Home },
-  { id: 'servers', label: 'Servere', icon: Server, countKey: 'servers' },
-  { id: 'saved', label: 'Lagrede', icon: Star, countKey: 'saved' },
-  { id: 'recent', label: 'Nylig spilt', icon: Clock, countKey: 'recent' },
-];
-
-export default function Sidebar({ user, authBusy, onLogin, onLogout, route, go, counts, totalPlayers, updateAvailable, statusLevel, isStaff, showFriends, roleInfo, unread, onOpenNotifs, onCodeLogin }) {
+// Ikonmenyen til venstre – samme stil som adminpanelet og nettsiden
+export default function Sidebar({ user, authBusy, onLogin, onLogout, route, go, counts, updateAvailable, statusLevel, isStaff, showFriends, onCodeLogin, onCache }) {
   const lvl = LEVELS[statusLevel || 'unknown'];
-  const active = route.name === 'server' ? route.from || 'servers' : route.name;
+  const active = route.name === 'server' || route.name === 'compare' ? (['saved', 'recent'].includes(route.from) ? 'servers' : route.from || 'servers') : ['saved', 'recent'].includes(route.name) ? 'servers' : route.name;
   const nav = [
-    ...NAV,
+    { id: 'home', label: 'Hjem', icon: Home },
+    { id: 'servers', label: `Servere (${counts.servers})`, icon: Server },
     ...(showFriends ? [{ id: 'friends', label: 'Venner', icon: Users }] : []),
     ...(isStaff ? [{ id: 'admin', label: 'Admin', icon: ShieldCheck }] : []),
   ];
+  const item = (id, label, Icon, extra) => (
+    <button
+      key={id}
+      className={active === id ? 'ri on' : 'ri'}
+      aria-current={active === id ? 'page' : undefined}
+      aria-label={label}
+      data-tip={label}
+      onClick={() => go({ name: id })}
+    >
+      <Icon size={20} strokeWidth={1.8} />
+      {extra}
+    </button>
+  );
   return (
-    <aside className="sidebar">
-      <nav aria-label="Hovedmeny" className="side-nav">
-        <div className="eyebrow side-label">Utforsk</div>
-        {nav.map(({ id, label, icon: Icon, countKey }) => (
-          <button
-            key={id}
-            className={active === id ? 'nav active' : 'nav'}
-            aria-current={active === id ? 'page' : undefined}
-            onClick={() => go({ name: id })}
-          >
-            <Icon size={18} strokeWidth={1.8} />
-            <span>{label}</span>
-            {countKey && <em>{counts[countKey]}</em>}
-          </button>
-        ))}
-      </nav>
-
-      <section className="live-card" aria-label="Live-status">
-        <div className="eyebrow live-label"><span className="dot" /> Live i Norge</div>
-        <div className="live-grid">
-          <div>
-            <strong>{totalPlayers.toLocaleString('no')}</strong>
-            <small>spillere</small>
-          </div>
-          <div>
-            <strong>{counts.servers}</strong>
-            <small>servere</small>
-          </div>
-        </div>
-      </section>
-
-      <button
-        className={`status-chip ${lvl.cls}${active === 'status' ? ' active' : ''}`}
-        onClick={() => go({ name: 'status' })}
-        aria-current={active === 'status' ? 'page' : undefined}
-      >
-        <i />
-        <span>
-          <small>FiveM-status</small>
-          {lvl.short}
-        </span>
+    <aside className="rail">
+      <button className="rail-logo" onClick={() => go({ name: 'home' })} aria-label="Hjem" data-tip="FiveM Norge">
+        <img src={logo} width="26" height="26" alt="" draggable="false" />
       </button>
-
-      <div className="side-bottom">
+      <div className="rail-dots" aria-hidden="true"><i /><i /><i /></div>
+      <nav aria-label="Hovedmeny" className="rail-nav">
+        {nav.map(({ id, label, icon }) => item(id, label, icon))}
         <button
-          className={active === 'settings' ? 'nav active' : 'nav'}
-          aria-current={active === 'settings' ? 'page' : undefined}
-          onClick={() => go({ name: 'settings' })}
+          className={`ri status-ri ${lvl.cls}${active === 'status' ? ' on' : ''}`}
+          aria-current={active === 'status' ? 'page' : undefined}
+          aria-label={`FiveM-status: ${lvl.short}`}
+          data-tip={`FiveM: ${lvl.short}`}
+          onClick={() => go({ name: 'status' })}
         >
-          <Settings size={18} strokeWidth={1.8} />
-          <span>Innstillinger</span>
-          {updateAvailable && <i className="badge-dot" aria-label="Oppdatering tilgjengelig" />}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z" />
+            <path d="M9 12l2 2 4-4" />
+          </svg>
         </button>
+      </nav>
+      <div className="rail-foot">
+        <button className="ri" onClick={onCache} aria-label="Tøm FiveM-cache" data-tip="Tøm FiveM-cache">
+          <Wrench size={19} strokeWidth={1.8} />
+        </button>
+        {item('settings', updateAvailable ? 'Innstillinger – ny versjon' : 'Innstillinger', Settings, updateAvailable ? <b className="ri-dot" /> : null)}
         {user ? (
-          <div className="user">
-            <img src={user.avatar} alt="" />
-            <div className="who">
-              <strong>{user.displayName}</strong>
-              {roleInfo && roleInfo.id !== 'user' ? (
-                <small className="role-tag" style={roleInfo.color ? { color: roleInfo.color } : undefined}>{roleInfo.name}</small>
-              ) : (
-                <small>Discord tilkoblet</small>
-              )}
-            </div>
-            <button className="icon-btn bell-btn" onClick={onOpenNotifs} aria-label={unread ? `Varsler, ${unread} uleste` : 'Varsler'} title="Varsler">
-              <Bell size={16} />
-              {unread > 0 && <em className="bell-count">{unread > 9 ? '9+' : unread}</em>}
-            </button>
-            <button className="icon-btn" onClick={onLogout} aria-label="Logg ut" title="Logg ut">
-              <LogOut size={16} />
-            </button>
-          </div>
+          <button className="ri" onClick={onLogout} aria-label="Logg ut" data-tip="Logg ut">
+            <LogOut size={19} strokeWidth={1.8} />
+          </button>
         ) : (
           <>
-            <button className="btn discord full" onClick={onLogin} disabled={authBusy}>
-              <DiscordIcon />
-              {authBusy ? 'Venter på Discord…' : 'Logg inn med Discord'}
-            </button>
             {showFriends && (
-              <button className="text-btn code-login" onClick={onCodeLogin}>
-                <KeyRound size={14} /> Logg inn med kode fra nettsiden
+              <button className="ri" onClick={onCodeLogin} aria-label="Logg inn med kode fra nettsiden" data-tip="Logg inn med kode">
+                <KeyRound size={19} strokeWidth={1.8} />
               </button>
             )}
+            <button className="ri discord-ri" onClick={onLogin} disabled={authBusy} aria-label="Logg inn med Discord" data-tip={authBusy ? 'Venter på Discord…' : 'Logg inn med Discord'}>
+              {authBusy ? <LogIn size={19} /> : <DiscordIcon />}
+            </button>
           </>
         )}
       </div>
