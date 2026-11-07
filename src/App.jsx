@@ -19,6 +19,7 @@ import CodeLoginModal from './components/CodeLoginModal.jsx';
 import NotifsModal from './components/NotifsModal.jsx';
 import MonthModal, { monthStats } from './components/MonthModal.jsx';
 import { api, errText } from './api.js';
+import { startChatSocket, stopChatSocket } from './chatSocket.js';
 
 const BACK_LABELS = { home: 'Hjem', servers: 'Alle servere', saved: 'Lagrede', recent: 'Nylig spilt', settings: 'Innstillinger', status: 'FiveM-status', compare: 'Sammenligning' };
 
@@ -53,6 +54,12 @@ export default function App() {
   useEffect(() => {
     api.chats?.get().then((c) => setChatUnread(c?.unread || 0)).catch(() => {});
   }, [user]);
+  // Sanntidschat mens du er innlogget og koblet til fivemnorge.xyz
+  useEffect(() => {
+    if (user && backend.enabled && backend.account && !backend.account.banned) startChatSocket();
+    else stopChatSocket();
+    return undefined;
+  }, [user, backend.enabled, !!backend.account, backend.account?.banned]);
   const [month, setMonth] = useState(null); // månedsoppsummering som vises
   const [appVersion, setAppVersion] = useState(null);
   const toastTimer = useRef(null);

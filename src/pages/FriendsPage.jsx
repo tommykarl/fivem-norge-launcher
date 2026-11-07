@@ -4,6 +4,8 @@ import { api, errText } from '../api.js';
 import DiscordIcon from '../components/DiscordIcon.jsx';
 import GroupCard from '../components/GroupCard.jsx';
 import ChatCard from '../components/ChatCard.jsx';
+import BadgesCard from '../components/BadgesCard.jsx';
+import NameTags from '../components/NameTags.jsx';
 
 // Venner er gjensidige: begge må legge hverandre til. Hvor man spiller vises bare
 // når vennen selv har skrudd på «Vis venner hvor jeg spiller».
@@ -107,7 +109,9 @@ export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, 
         </button>
       </div>
 
-      <ChatCard openWith={chatTo} notify={notify} />
+      <ChatCard openWith={chatTo} notify={notify} servers={servers} onPlay={onPlay} />
+
+      {user && <BadgesCard account={account} profileUrl={pub ? profileUrl : null} />}
 
       {user && <GroupCard servers={servers} notify={notify} />}
 
@@ -150,7 +154,7 @@ export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, 
             {data.incoming.map((f) => (
               <div className="friend" key={f.id}>
                 <img src={f.avatar} alt="" />
-                <div className="ft"><strong>{f.name}</strong><small>@{f.username}</small></div>
+                <div className="ft"><strong>{f.name} <NameTags verified={f.verified} staff={f.staff} size={14} /></strong><small>@{f.username}</small></div>
                 <button className="btn sm play" onClick={() => add(null, f.id)}><UserPlus size={14} /> Legg til</button>
               </div>
             ))}
@@ -170,7 +174,7 @@ export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, 
               <div className="friend" key={f.id}>
                 <img src={f.avatar} alt="" />
                 <div className="ft">
-                  <strong>{f.name}</strong>
+                  <strong>{f.name} <NameTags verified={f.verified} staff={f.staff} size={14} /></strong>
                   {f.playing ? <small className="playing">Spiller {f.playing.name}</small> : <small>@{f.username}</small>}
                 </div>
                 {f.playing && (

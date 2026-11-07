@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { BadgeCheck, Crown, ExternalLink, Star, X } from 'lucide-react';
+import { BadgeCheck, Crown, ExternalLink, Flag, Star, X } from 'lucide-react';
 import { api, errText, formatAgo } from '../api.js';
 
 const StarsStatic = ({ value }) => (
@@ -134,7 +134,9 @@ export default function ServerCommunity({ server, user, backendEnabled, notify }
               <div className="review" key={r.userId}>
                 <img src={r.avatar} alt="" />
                 <div>
-                  <div className="who"><strong>{r.name}</strong><StarsStatic value={r.stars} /><span className="hint">{formatAgo(r.at)}</span></div>
+                  <div className="who"><strong>{r.name}</strong><StarsStatic value={r.stars} /><span className="hint">{formatAgo(r.at)}</span>
+                    {user && r.text && r.userId !== user.id && r.key && <ReportButton rkey={r.key} notify={notify} />}
+                  </div>
                   {r.text && <p>{r.text}</p>}
                 </div>
               </div>
@@ -154,6 +156,42 @@ export default function ServerCommunity({ server, user, backendEnabled, notify }
       )}
       {claimOpen && <ClaimModal server={server} onClose={() => setClaimOpen(false)} notify={notify} />}
     </>
+  );
+}
+
+// Rapporter en anmeldelse til staben (spam, hets …)
+const REASONS = [['spam', 'Spam eller reklame'], ['hets', 'Hets eller trakassering'], ['usann', 'Falsk eller villedende'], ['personinfo', 'Personopplysninger'], ['annet', 'Annet']];
+function ReportButton({ rkey, notify }) {
+  const [open, setOpen] = useState(false);
+  const [done, setDone] = useState(false);
+  if (done) return <span className="hint">Rapportert</span>;
+  if (!open)
+    return (
+      <button className="report-btn" onClick={() => setOpen(true)} title="Rapporter anmeldelsen" aria-label="Rapporter anmeldelsen">
+        <Flag size={13} />
+      </button>
+    );
+  return (
+    <span className="report-pick">
+      {REASONS.map(([k, l]) => (
+        <button
+          key={k}
+          className="chip"
+          onClick={async () => {
+            try {
+              await api.backend.api('POST', '/api/launcher/review-report', { key: rkey, reason: k });
+              setDone(true);
+              notify('Takk! Staben ser på det.');
+            } catch (e) {
+              notify(errText(e));
+            }
+          }}
+        >
+          {l}
+        </button>
+      ))}
+      <button className="chip ghost" onClick={() => setOpen(false)}>Avbryt</button>
+    </span>
   );
 }
 

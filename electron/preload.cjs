@@ -56,6 +56,7 @@ contextBridge.exposeInMainWorld('launcher', {
   chats: {
     get: (fresh = false) => ipcRenderer.invoke('chats:get', fresh),
     open: (id) => ipcRenderer.invoke('chats:open', id),
+    socketUrl: () => ipcRenderer.invoke('chats:socket'),
   },
   status: {
     get: (force = false) => ipcRenderer.invoke('status:get', force),

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, BadgeCheck, ChevronLeft, Clock, Copy, Globe, Loader2, MessageSquare, Play, Star } from 'lucide-react';
+import { ArrowUpRight, BadgeCheck, ChevronLeft, Clock, Copy, Gamepad2, Globe, Loader2, MessageSquare, Play, Star } from 'lucide-react';
+import NameTags from '../components/NameTags.jsx';
 import ServerIcon from '../components/ServerIcon.jsx';
 import Mountains from '../components/Mountains.jsx';
 import Sparkline from '../components/Sparkline.jsx';
@@ -16,6 +17,36 @@ export default function ServerPage({
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
   const [history, setHistory] = useState([]);
+  const [follow, setFollow] = useState(null); // varsel lagret på kontoen (fivemnorge.xyz)
+  const [friends, setFriends] = useState(null);
+  const [invited, setInvited] = useState({});
+  useEffect(() => {
+    if (!user || !backendEnabled) return undefined;
+    let alive = true;
+    api.backend.api('GET', '/api/launcher/follows').then((d) => alive && setFollow(d.follows.find((x) => x.id === server.id) || false)).catch(() => {});
+    api.backend.api('GET', '/api/launcher/friends').then((d) => alive && setFriends(d.friends.filter((f) => f.mutual !== false))).catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [user, backendEnabled, server.id]);
+  const saveFollow = async (on, min) => {
+    try {
+      const d = await api.backend.api(on ? 'POST' : 'DELETE', '/api/launcher/follows', on ? { serverId: server.id, min } : { serverId: server.id });
+      setFollow(d.follows.find((x) => x.id === server.id) || false);
+      notify(on ? `Du får varsel på kontoen ved ${min} spillere` : 'Varselet er fjernet fra kontoen');
+    } catch (e) {
+      notify(errText(e));
+    }
+  };
+  const inviteFriend = async (f) => {
+    try {
+      await api.backend.api('POST', `/api/launcher/chats/${f.id}`, { invite: server.id });
+      setInvited((x) => ({ ...x, [f.id]: true }));
+      notify(`Invitasjon sendt til ${f.name}`);
+    } catch (e) {
+      notify(errText(e));
+    }
+  };
 
   useEffect(() => {
     let alive = true;
@@ -193,7 +224,39 @@ export default function ServerPage({
                 <span>spillere</span>
               </form>
               <p className="hint">Sjekkes hvert 30. sekund mens launcheren er åpen. Står du i kø på flere servere, kobles du til den første som får plass.</p>
+              {user && backendEnabled && follow !== null && (
+                <label className="check">
+                  <input
+                    type="checkbox"
+                    checked={!!follow}
+                    onChange={(e) => saveFollow(e.target.checked, Number(thr) || w.threshold || Math.max(10, Math.round((s.max || 100) * 0.5)))}
+                  />
+                  <span>Lagre på kontoen{follow ? ` (${follow.min} spillere)` : ''}</span>
+                </label>
+              )}
+              {user && backendEnabled && follow !== null && (
+                <p className="hint">Da får du varselet under Varsler her og på Min side, også om launcheren var lukket.</p>
+              )}
             </section>
+
+            {user && backendEnabled && friends && friends.length > 0 && (
+              <section className="card">
+                <h2><Gamepad2 size={18} strokeWidth={1.8} /> Spill sammen</h2>
+                <p className="muted-sm">Send en invitasjon i chatten. Vennen kan koble til med ett klikk.</p>
+                <div className="invite-list">
+                  {friends.slice(0, 8).map((f) => (
+                    <div className="friend" key={f.id}>
+                      <img src={f.avatar} alt="" />
+                      <div className="ft">
+                        <strong>{f.name} <NameTags verified={f.verified} staff={f.staff} size={13} /></strong>
+                        <small className={f.playing ? 'playing' : ''}>{f.playing ? `Spiller ${f.playing.name}` : `@${f.username}`}</small>
+                      </div>
+                      <button className="btn sm ghost" disabled={invited[f.id]} onClick={() => inviteFriend(f)}>{invited[f.id] ? 'Sendt' : 'Inviter'}</button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             <NotesCard server={s} note={note} allTags={allTags} onSave={onSaveNote} />
 

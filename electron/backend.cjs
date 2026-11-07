@@ -302,6 +302,13 @@ async function pollChats() {
     /* prøver igjen om litt */
   }
 }
+// Engangsbillett til sanntidschatten (WebSocket). Selve forbindelsen åpnes i vinduet.
+async function chatSocketUrl() {
+  const token = deps?.getLauncherToken();
+  if (!base || !token) return null;
+  const r = await call('/api/launcher/chat-ticket', { method: 'POST', body: {}, token });
+  return `${base.replace(/^http/i, 'ws')}${r.url}`;
+}
 function setChatOpen(id) {
   chatOpen = id || null;
 }
@@ -468,6 +475,11 @@ const ALLOWED = [
   ['POST', /^\/api\/launcher\/chats\/\d{15,21}$/, true],
   ['DELETE', /^\/api\/launcher\/chats\/\d{15,21}$/, true],
   ['POST', /^\/api\/launcher\/events\/\d+\/rsvp$/, true],
+  ['GET', /^\/api\/launcher\/badges$/, true],
+  ['GET', /^\/api\/launcher\/follows$/, true],
+  ['POST', /^\/api\/launcher\/follows$/, true],
+  ['DELETE', /^\/api\/launcher\/follows$/, true],
+  ['POST', /^\/api\/launcher\/review-report$/, true],
   ['GET', /^\/api\/public\/(trending|toplist)$/, false],
   ['GET', /^\/api\/admin\/[a-z0-9/?=&_.~-]*$/i, true],
   ['POST', /^\/api\/admin\/[a-z0-9/_.~-]+$/i, true],
@@ -579,6 +591,7 @@ module.exports = {
   readNotifs,
   pollNotifs,
   pollChats,
+  chatSocketUrl,
   setChatOpen,
   getChats: () => chats,
   pollGroup,

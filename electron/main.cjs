@@ -488,6 +488,7 @@ ipcMain.handle('notifs:get', () => backend.getNotifs());
 ipcMain.handle('notifs:read', (_e, body) => backend.readNotifs(body || {}));
 ipcMain.handle('group:get', () => backend.pollGroup().then(() => backend.getGroup()));
 ipcMain.handle('chats:get', (_e, fresh) => (fresh ? backend.pollChats().then(() => backend.getChats()) : backend.getChats()));
+ipcMain.handle('chats:socket', () => backend.chatSocketUrl().catch(() => null));
 ipcMain.handle('chats:open', (_e, id) => backend.setChatOpen(/^\d{15,21}$/.test(String(id || '')) ? String(id) : null));
 
 ipcMain.handle('auth:logout', () => {

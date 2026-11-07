@@ -1,21 +1,21 @@
 {
-  "version": "1.8.2",
-  "setup": "FiveM-Norge-Launcher-Setup-1.8.2.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.8.2.exe",
+  "version": "1.9.0",
+  "setup": "FiveM-Norge-Launcher-Setup-1.9.0.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.9.0.exe",
   "sha256": {
-    "setup": "fef9244832afd044e5dd356f7ebe2a4832021decc6066b1d42a9fdbe78e2830a",
-    "portable": "a451248865cc8f62a96b24675aac1115c5a5bda0e6f974b6bf321e224c73a29a"
+    "setup": "49c508cb02b57ceaa72df1805c39acf3313181e8b564f1dd6d2928a54736bafd",
+    "portable": "c6889b8efbf3015abb515cb748fc595a8bd0a86d0b878ed7e6edae8bde3ede67"
   },
   "sizes": {
-    "setup": 82495569,
-    "portable": 82176278
+    "setup": 82499641,
+    "portable": 82180325
   },
   "asar": {
-    "file": "app-1.8.2.asar.gz",
-    "sha256": "40389cf78adc57d6c90d018f9fab1d960881aff952d90c31f1d9dc8f6a128189",
-    "size": 2018714,
+    "file": "app-1.9.0.asar.gz",
+    "sha256": "07ac103f7426af2221d56402a7839deeda1b6dde6cf4015b0384cf800151895b",
+    "size": 2023562,
     "electron": "33.4.11"
   },
-  "notes": "Nytt i 1.8.2 – chat med venner:\n• Chat med vennene dine under Venner – samme samtaler som under Chat på Min side\n• Systemvarsel når en venn skriver til deg, og tall for uleste på Venner-ikonet\n• «Sett» når vennen har lest meldingen, og «Tøm» for å skjule en samtale for deg\n• Chat-knapp ved hver venn i vennelista\n\nFra 1.8.1: launcheren prøver Windows sitt nettverk når den ikke får kontakt (retter «fetch failed»)",
-  "publishedAt": "2026-11-07T21:43:26.873Z"
+  "notes": "Chatten er nå i sanntid: meldinger kommer med en gang, du ser når vennen skriver, og det kommer en lyd (kan skrus av). Inviter venner til en server fra serversiden eller chatten – de kobler til med ett klikk. Nytt kort «Merkene dine» under Venner, og blått verifisert-merke og Staff-skjold vises ved navn. Varselet om antall spillere kan lagres på kontoen, og du kan rapportere anmeldelser til staben.",
+  "publishedAt": "2026-11-07T23:11:45.320Z"
 }
