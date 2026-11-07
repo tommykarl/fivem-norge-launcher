@@ -4,13 +4,13 @@ import { LEVELS } from '../status.js';
 import logo from '../assets/logo.png';
 
 // Ikonmenyen til venstre – samme stil som adminpanelet og nettsiden
-export default function Sidebar({ user, authBusy, onLogin, onLogout, route, go, counts, updateAvailable, statusLevel, isStaff, showFriends, onCodeLogin, onCache }) {
+export default function Sidebar({ user, authBusy, onLogin, onLogout, route, go, counts, updateAvailable, statusLevel, isStaff, showFriends, onCodeLogin, onCache, chatUnread = 0 }) {
   const lvl = LEVELS[statusLevel || 'unknown'];
   const active = route.name === 'server' || route.name === 'compare' ? (['saved', 'recent'].includes(route.from) ? 'servers' : route.from || 'servers') : ['saved', 'recent'].includes(route.name) ? 'servers' : route.name;
   const nav = [
     { id: 'home', label: 'Hjem', icon: Home },
     { id: 'servers', label: `Servere (${counts.servers})`, icon: Server },
-    ...(showFriends ? [{ id: 'friends', label: 'Venner', icon: Users }] : []),
+    ...(showFriends ? [{ id: 'friends', label: chatUnread ? `Venner – ${chatUnread} nye meldinger` : 'Venner', icon: Users, badge: chatUnread }] : []),
     ...(isStaff ? [{ id: 'admin', label: 'Admin', icon: ShieldCheck }] : []),
   ];
   const item = (id, label, Icon, extra) => (
@@ -33,7 +33,7 @@ export default function Sidebar({ user, authBusy, onLogin, onLogout, route, go, 
       </button>
       <div className="rail-dots" aria-hidden="true"><i /><i /><i /></div>
       <nav aria-label="Hovedmeny" className="rail-nav">
-        {nav.map(({ id, label, icon }) => item(id, label, icon))}
+        {nav.map(({ id, label, icon, badge }) => item(id, label, icon, badge ? <b className="ri-count">{badge > 9 ? '9+' : badge}</b> : null))}
         <button
           className={`ri status-ri ${lvl.cls}${active === 'status' ? ' on' : ''}`}
           aria-current={active === 'status' ? 'page' : undefined}

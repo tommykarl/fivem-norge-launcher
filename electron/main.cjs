@@ -229,6 +229,18 @@ if (!app.requestSingleInstanceLock()) {
       activity: () => features.getActivity(),
       connect: connectTo,
       notify,
+      isFocused: () => !!win && !win.isDestroyed() && win.isVisible() && win.isFocused(),
+      // Ny chatmelding fra en venn: systemvarsel som åpner samtalen
+      notifyChat: (c) => {
+        if (!features.getSettings().notifications || !Notification.isSupported()) return;
+        const x = new Notification({ title: c.friend.name, body: c.last?.text || 'Ny melding', icon: path.join(__dirname, 'icon.ico') });
+        x.on('click', () => {
+          win?.show();
+          win?.focus();
+          win?.webContents.send('nav:chat', c.friend.id);
+        });
+        x.show();
+      },
       // Varsel fra nettsiden (venneforespørsel, nyhet, gruppe …) som systemvarsel
       notifyItem: (n) => {
         if (!features.getSettings().notifications || !Notification.isSupported()) return;
@@ -475,6 +487,8 @@ ipcMain.handle('auth:codePoll', async (_e, poll) => {
 ipcMain.handle('notifs:get', () => backend.getNotifs());
 ipcMain.handle('notifs:read', (_e, body) => backend.readNotifs(body || {}));
 ipcMain.handle('group:get', () => backend.pollGroup().then(() => backend.getGroup()));
+ipcMain.handle('chats:get', (_e, fresh) => (fresh ? backend.pollChats().then(() => backend.getChats()) : backend.getChats()));
+ipcMain.handle('chats:open', (_e, id) => backend.setChatOpen(/^\d{15,21}$/.test(String(id || '')) ? String(id) : null));
 
 ipcMain.handle('auth:logout', () => {
   session = null;

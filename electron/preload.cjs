@@ -53,6 +53,10 @@ contextBridge.exposeInMainWorld('launcher', {
   group: {
     get: () => ipcRenderer.invoke('group:get'),
   },
+  chats: {
+    get: (fresh = false) => ipcRenderer.invoke('chats:get', fresh),
+    open: (id) => ipcRenderer.invoke('chats:open', id),
+  },
   status: {
     get: (force = false) => ipcRenderer.invoke('status:get', force),
   },
@@ -65,7 +69,7 @@ contextBridge.exposeInMainWorld('launcher', {
   },
   // Hendelser fra hovedprosessen. Returnerer en funksjon som fjerner lytteren.
   on: (channel, fn) => {
-    const allowed = ['toast', 'nav:server', 'watch:changed', 'activity:changed', 'status:changed', 'update:progress', 'backend:changed', 'backend:banned', 'favorites:changed', 'notifs:changed', 'group:changed', 'auth:signedOut', 'nav:page'];
+    const allowed = ['toast', 'nav:server', 'watch:changed', 'activity:changed', 'status:changed', 'update:progress', 'backend:changed', 'backend:banned', 'favorites:changed', 'notifs:changed', 'group:changed', 'auth:signedOut', 'nav:page', 'chats:changed', 'nav:chat'];
     if (!allowed.includes(channel)) return () => {};
     const handler = (_e, payload) => fn(payload);
     ipcRenderer.on(channel, handler);

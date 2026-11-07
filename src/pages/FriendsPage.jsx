@@ -1,16 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Play, RefreshCw, UserMinus, UserPlus } from 'lucide-react';
+import { MessageCircle, Play, RefreshCw, UserMinus, UserPlus } from 'lucide-react';
 import { api, errText } from '../api.js';
 import DiscordIcon from '../components/DiscordIcon.jsx';
 import GroupCard from '../components/GroupCard.jsx';
+import ChatCard from '../components/ChatCard.jsx';
 
 // Venner er gjensidige: begge må legge hverandre til. Hvor man spiller vises bare
 // når vennen selv har skrudd på «Vis venner hvor jeg spiller».
-export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, notify, onShareChanged, servers = [] }) {
+export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, notify, onShareChanged, servers = [], chatWith = null }) {
   const [data, setData] = useState(null);
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState('');
   const [err, setErr] = useState(null);
+  const [chatTo, setChatTo] = useState(chatWith);
+  useEffect(() => {
+    if (chatWith) setChatTo(chatWith);
+  }, [chatWith]);
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -102,6 +107,8 @@ export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, 
         </button>
       </div>
 
+      <ChatCard openWith={chatTo} notify={notify} />
+
       {user && <GroupCard servers={servers} notify={notify} />}
 
       <section className="card">
@@ -171,6 +178,9 @@ export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, 
                     <Play size={14} /> Bli med
                   </button>
                 )}
+                <button className="btn sm ghost" onClick={() => { setChatTo(f.id); document.querySelector('.chat-card')?.scrollIntoView({ behavior: 'smooth' }); }}>
+                  <MessageCircle size={14} /> Chat
+                </button>
                 <button className="icon-btn" onClick={() => remove(f)} aria-label={`Fjern ${f.name}`} title="Fjern"><UserMinus size={16} /></button>
               </div>
             ))}

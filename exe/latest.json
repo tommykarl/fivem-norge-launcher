@@ -1,21 +1,21 @@
 {
-  "version": "1.8.1",
-  "setup": "FiveM-Norge-Launcher-Setup-1.8.1.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.8.1.exe",
+  "version": "1.8.2",
+  "setup": "FiveM-Norge-Launcher-Setup-1.8.2.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.8.2.exe",
   "sha256": {
-    "setup": "e9ed8373a70438d85f8a43d0ec548f3d38903081ef52ee95d7cba1225398d887",
-    "portable": "fbeb0ec6f4e5180afd7ac94627c8d0afd6aee35d806867e8841cd48d6aa14844"
+    "setup": "fef9244832afd044e5dd356f7ebe2a4832021decc6066b1d42a9fdbe78e2830a",
+    "portable": "a451248865cc8f62a96b24675aac1115c5a5bda0e6f974b6bf321e224c73a29a"
   },
   "sizes": {
-    "setup": 82493141,
-    "portable": 82173827
+    "setup": 82495569,
+    "portable": 82176278
   },
   "asar": {
-    "file": "app-1.8.1.asar.gz",
-    "sha256": "475eb1502428288fe516540c291a9556e864513eabda50e4abaafa11d6a30374",
-    "size": 2016199,
+    "file": "app-1.8.2.asar.gz",
+    "sha256": "40389cf78adc57d6c90d018f9fab1d960881aff952d90c31f1d9dc8f6a128189",
+    "size": 2018714,
     "electron": "33.4.11"
   },
-  "notes": "Nytt i 1.8.1:\n• Retter «fetch failed» ved innlogging med kode, varsler og kontakt med fivemnorge.xyz på PC-er med antivirus som skanner HTTPS eller proxy – launcheren prøver nå også Windows sitt nettverk, som en vanlig nettleser\n• Samme reserveløsning for Discord-innlogging og oppdateringer\n• Feilmeldinger forteller nå hvorfor den ikke fikk kontakt\n\nNytt i 1.8.0 – nytt design:\n• Samme utseende som nettsiden og adminpanelet: svart ramme, ikonmeny og pastellkort\n• Ny topplinje med søk (Ctrl K), spillere nå, varsler og profilbildet ditt\n• FiveM-status som skjold i menyen, og Lagrede og Nylig spilt som faner på Servere",
-  "publishedAt": "2026-11-07T12:34:00.910Z"
+  "notes": "Nytt i 1.8.2 – chat med venner:\n• Chat med vennene dine under Venner – samme samtaler som under Chat på Min side\n• Systemvarsel når en venn skriver til deg, og tall for uleste på Venner-ikonet\n• «Sett» når vennen har lest meldingen, og «Tøm» for å skjule en samtale for deg\n• Chat-knapp ved hver venn i vennelista\n\nFra 1.8.1: launcheren prøver Windows sitt nettverk når den ikke får kontakt (retter «fetch failed»)",
+  "publishedAt": "2026-11-07T21:43:26.873Z"
 }

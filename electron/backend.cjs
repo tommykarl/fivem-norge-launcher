@@ -279,6 +279,33 @@ async function readNotifs(body) {
   return notifs;
 }
 
+// ---------- Chat med venner (samme samtaler som på Min side) ----------
+let chats = { unread: 0, convs: [] };
+let chatLastSeen = null; // siste melding vi har varslet om, per venn
+let chatOpen = null; // venn-ID-en til samtalen som er åpen i vinduet
+async function pollChats() {
+  const token = deps?.getLauncherToken();
+  if (!base || !token || !account || account.banned) return;
+  try {
+    chats = await call('/api/launcher/chats', { token });
+    const first = !chatLastSeen;
+    chatLastSeen ||= {};
+    for (const c of chats.convs) {
+      const at = c.last?.at || 0;
+      const prev = chatLastSeen[c.friend.id] || 0;
+      chatLastSeen[c.friend.id] = Math.max(prev, at);
+      // Varsle om nye meldinger fra vennen (ikke ved første henting, ikke for den åpne samtalen)
+      if (!first && at > prev && c.unread && !c.last.mine && !(chatOpen === c.friend.id && deps.isFocused?.())) deps.notifyChat?.(c);
+    }
+    deps.emit('chats:changed', chats);
+  } catch {
+    /* prøver igjen om litt */
+  }
+}
+function setChatOpen(id) {
+  chatOpen = id || null;
+}
+
 // ---------- Gruppekø: alle i gruppen kobles inn samtidig ----------
 let group = { group: null, invites: [], friends: [] };
 let goHandled = null;
@@ -437,6 +464,9 @@ const ALLOWED = [
   ['POST', /^\/api\/launcher\/group$/, true],
   ['POST', /^\/api\/launcher\/group\/[a-f0-9]{10}\/(join|leave|go|invite)$/, true],
   ['GET', /^\/api\/launcher\/rsvps$/, true],
+  ['GET', /^\/api\/launcher\/chats(\/\d{15,21})?$/, true],
+  ['POST', /^\/api\/launcher\/chats\/\d{15,21}$/, true],
+  ['DELETE', /^\/api\/launcher\/chats\/\d{15,21}$/, true],
   ['POST', /^\/api\/launcher\/events\/\d+\/rsvp$/, true],
   ['GET', /^\/api\/public\/(trending|toplist)$/, false],
   ['GET', /^\/api\/admin\/[a-z0-9/?=&_.~-]*$/i, true],
@@ -499,9 +529,11 @@ function init(url, d) {
   setInterval(pollFriends, 2 * 60_000);
   setInterval(sendProfile, 60 * 60_000);
   setInterval(pollNotifs, 2 * 60_000);
+  setInterval(pollChats, 20_000);
   setInterval(pollRsvps, 5 * 60_000);
   setTimeout(() => {
     pollNotifs();
+    pollChats();
     pollGroup();
     pollRsvps();
   }, 8_000);
@@ -546,6 +578,9 @@ module.exports = {
   codePoll,
   readNotifs,
   pollNotifs,
+  pollChats,
+  setChatOpen,
+  getChats: () => chats,
   pollGroup,
   reportQueue,
   getNotifs: () => notifs,

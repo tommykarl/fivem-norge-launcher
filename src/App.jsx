@@ -49,6 +49,10 @@ export default function App() {
   const [iconKey, setIconKey] = useState(0);
   const [whatsNew, setWhatsNew] = useState(null);
   const [notifs, setNotifs] = useState({ unread: 0, items: [] });
+  const [chatUnread, setChatUnread] = useState(0);
+  useEffect(() => {
+    api.chats?.get().then((c) => setChatUnread(c?.unread || 0)).catch(() => {});
+  }, [user]);
   const [month, setMonth] = useState(null); // månedsoppsummering som vises
   const [appVersion, setAppVersion] = useState(null);
   const toastTimer = useRef(null);
@@ -168,6 +172,8 @@ export default function App() {
       }),
       api.on('nav:server', (id) => go({ name: 'server', id })),
       api.on('nav:page', (name) => go({ name })),
+      api.on('nav:chat', (id) => go({ name: 'friends', chat: id })),
+      api.on('chats:changed', (c) => c && setChatUnread(c.unread || 0)),
       api.on('notifs:changed', (n) => n && setNotifs(n)),
       api.on('auth:signedOut', (msg) => {
         setUser(null);
@@ -417,6 +423,7 @@ export default function App() {
           showFriends={!!backend.enabled}
           onCodeLogin={() => setModal('code')}
           onCache={() => setModal('cache')}
+          chatUnread={user ? chatUnread : 0}
         />
 
         <div className="content">
@@ -501,6 +508,7 @@ export default function App() {
               notify={notify}
               onShareChanged={loadBackend}
               servers={shownServers}
+              chatWith={route.chat}
             />
           )}
 
