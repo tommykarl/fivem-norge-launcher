@@ -1,21 +1,21 @@
 {
-  "version": "1.8.0",
-  "setup": "FiveM-Norge-Launcher-Setup-1.8.0.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.8.0.exe",
+  "version": "1.8.1",
+  "setup": "FiveM-Norge-Launcher-Setup-1.8.1.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.8.1.exe",
   "sha256": {
-    "setup": "db98b4fc5d27e347fdcd3c20135eae906903e78c1a571871ee93b84fb831cba8",
-    "portable": "1f3e7727c93dce054013d55afe9ec65db8f3ed342c2086bd443fab70be312723"
+    "setup": "e9ed8373a70438d85f8a43d0ec548f3d38903081ef52ee95d7cba1225398d887",
+    "portable": "fbeb0ec6f4e5180afd7ac94627c8d0afd6aee35d806867e8841cd48d6aa14844"
   },
   "sizes": {
-    "setup": 82492972,
-    "portable": 82173656
+    "setup": 82493141,
+    "portable": 82173827
   },
   "asar": {
-    "file": "app-1.8.0.asar.gz",
-    "sha256": "db7569f9593d8719040410584ea829b80bd60b7653d6777d53a517cc34fe84e1",
-    "size": 2015876,
+    "file": "app-1.8.1.asar.gz",
+    "sha256": "475eb1502428288fe516540c291a9556e864513eabda50e4abaafa11d6a30374",
+    "size": 2016199,
     "electron": "33.4.11"
   },
-  "notes": "Nytt i 1.8.0 – nytt design:\n• Samme utseende som nettsiden og adminpanelet: svart ramme, ikonmeny til venstre og pastellkort\n• Ny topplinje med søk (Ctrl K), spillere nå, varsler og profilbildet ditt\n• FiveM-status som skjold i menyen – grønt, gult eller rødt\n• Lagrede og Nylig spilt er faner på Servere-siden\n• Runde knapper og filtre, og serversiden har fått et nytt banner\n• Fungerer i både mørk og lys modus",
-  "publishedAt": "2026-11-07T12:16:20.679Z"
+  "notes": "Nytt i 1.8.1:\n• Retter «fetch failed» ved innlogging med kode, varsler og kontakt med fivemnorge.xyz på PC-er med antivirus som skanner HTTPS eller proxy – launcheren prøver nå også Windows sitt nettverk, som en vanlig nettleser\n• Samme reserveløsning for Discord-innlogging og oppdateringer\n• Feilmeldinger forteller nå hvorfor den ikke fikk kontakt\n\nNytt i 1.8.0 – nytt design:\n• Samme utseende som nettsiden og adminpanelet: svart ramme, ikonmeny og pastellkort\n• Ny topplinje med søk (Ctrl K), spillere nå, varsler og profilbildet ditt\n• FiveM-status som skjold i menyen, og Lagrede og Nylig spilt som faner på Servere",
+  "publishedAt": "2026-11-07T12:34:00.910Z"
 }

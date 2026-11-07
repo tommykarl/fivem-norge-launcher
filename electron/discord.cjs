@@ -1,6 +1,7 @@
 // Discord-innlogging med OAuth2 "implicit grant" – ingen client secret trengs i appen.
 // Innloggingssiden åpnes i et eget vindu, og vi fanger opp redirecten før den lastes.
 const { BrowserWindow } = require('electron');
+const { netFetch } = require('./netfetch.cjs');
 const crypto = require('crypto');
 
 const REDIRECT_URI = 'http://localhost:53134/callback';
@@ -75,7 +76,7 @@ function authorize(clientId, parent) {
 }
 
 async function fetchUser(token) {
-  const res = await fetch('https://discord.com/api/v10/users/@me', {
+  const res = await netFetch('https://discord.com/api/v10/users/@me', {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Discord svarte med ${res.status}`);

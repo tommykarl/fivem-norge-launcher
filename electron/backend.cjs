@@ -5,6 +5,7 @@
 // Innlogging: Discord-tokenet sendes bare én gang (POST /api/launcher/login). Backenden svarer
 // med en egen nøkkel som brukes videre, så Discord-tokenet ikke trenger å sendes igjen.
 const { app } = require('electron');
+const { netFetch } = require('./netfetch.cjs');
 const crypto = require('crypto');
 const { jsonFile } = require('./jsonfile.cjs');
 
@@ -61,7 +62,7 @@ async function call(path, { method = 'GET', body, token } = {}) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 12_000);
   try {
-    const res = await fetch(`${base}${path}`, {
+    const res = await netFetch(`${base}${path}`, {
       method,
       headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) },
       body: body ? JSON.stringify(body) : undefined,
@@ -532,7 +533,7 @@ module.exports = {
   exportMyDataHtml: async () => {
     const token = deps.getLauncherToken();
     if (!base || !token) throw new Error('Logg inn med Discord først');
-    const res = await fetch(`${base}/api/launcher/mydata?format=html`, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(20_000) });
+    const res = await netFetch(`${base}/api/launcher/mydata?format=html`, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(20_000) });
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
     return res.text();
   },

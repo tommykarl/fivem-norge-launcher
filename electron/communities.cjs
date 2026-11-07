@@ -1,6 +1,7 @@
 // Finner FiveM-servere der brukeren allerede er medlem av Discord-serveren deres.
 // Krever "guilds"-tilgang ved innlogging. Invitasjonslenker slås opp i Discords åpne invite-API.
 const { jsonFile } = require('./jsonfile.cjs');
+const { netFetch } = require('./netfetch.cjs');
 
 const invitesFile = jsonFile('discord-invites.json', { codes: {} });
 const INVITE_TTL = 7 * 24 * 3600_000;
@@ -12,7 +13,7 @@ const codeOf = (url) => (String(url || '').match(/discord\.gg\/([a-z0-9-]+)/i) |
 
 async function lookupInvite(code) {
   for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await fetch(`https://discord.com/api/v10/invites/${encodeURIComponent(code)}`);
+    const res = await netFetch(`https://discord.com/api/v10/invites/${encodeURIComponent(code)}`);
     if (res.status === 429) {
       const body = await res.json().catch(() => ({}));
       await sleep(Math.min(10_000, (body.retry_after || 2) * 1000));
@@ -26,7 +27,7 @@ async function lookupInvite(code) {
 }
 
 async function fetchGuildIds(token) {
-  const res = await fetch('https://discord.com/api/v10/users/@me/guilds?limit=200', {
+  const res = await netFetch('https://discord.com/api/v10/users/@me/guilds?limit=200', {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (res.status === 401 || res.status === 403) {

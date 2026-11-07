@@ -1,5 +1,6 @@
 // Om appen, oppdateringer, avinstallering, oppstart med Windows, systemstatusfelt og nullstilling.
 const { app, Tray, Menu, shell } = require('electron');
+const { netFetch } = require('./netfetch.cjs');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
@@ -43,7 +44,7 @@ async function checkUpdate() {
   const repo = updateRepo();
   const current = app.getVersion();
   if (!repo) return { configured: false, current };
-  const res = await fetch(`${rawUrl(repo, 'latest.json')}?t=${Date.now()}`, {
+  const res = await netFetch(`${rawUrl(repo, 'latest.json')}?t=${Date.now()}`, {
     headers: { 'User-Agent': 'FiveMNorgeLauncher', 'Cache-Control': 'no-cache' },
   });
   if (res.status === 404) {
@@ -178,7 +179,7 @@ async function downloadPatch(u, onProgress) {
   // Adressen kommer fra vinduet: godta bare filer fra exe-mappa i oppdateringsrepoet
   const repo = updateRepo();
   if (!repo || !u.patch.url.startsWith(rawUrl(repo, '')) || !/\/app-[\d.]+\.asar\.gz$/i.test(u.patch.url) || !/^[0-9a-f]{64}$/.test(u.patch.sha256 || '')) throw new Error('Ugyldig oppdatering');
-  const res = await fetch(u.patch.url, { headers: { 'User-Agent': 'FiveMNorgeLauncher' }, redirect: 'follow' });
+  const res = await netFetch(u.patch.url, { headers: { 'User-Agent': 'FiveMNorgeLauncher' }, redirect: 'follow' });
   if (!res.ok || !res.body) throw new Error(`Nedlasting feilet (HTTP ${res.status})`);
   const total = Number(res.headers.get('content-length')) || u.patch.size || 0;
   const zlib = require('node:zlib');
@@ -229,7 +230,7 @@ async function downloadUpdate(u, onProgress) {
   }
   if (isPortable()) throw new Error('Den portable versjonen oppdateres ved å laste ned ny .exe');
   if (downloaded?.version === u.latest && fs.existsSync(downloaded.file)) return downloaded;
-  const res = await fetch(u.url, { headers: { 'User-Agent': 'FiveMNorgeLauncher' }, redirect: 'follow' });
+  const res = await netFetch(u.url, { headers: { 'User-Agent': 'FiveMNorgeLauncher' }, redirect: 'follow' });
   if (!res.ok || !res.body) throw new Error(`Nedlasting feilet (HTTP ${res.status})`);
   const total = Number(res.headers.get('content-length')) || 0;
   const file = path.join(app.getPath('temp'), `FiveM-Norge-Launcher-Setup-${u.latest}.exe`);
