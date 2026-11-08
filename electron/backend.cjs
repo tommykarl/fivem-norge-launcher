@@ -480,6 +480,7 @@ const ALLOWED = [
   ['POST', /^\/api\/launcher\/follows$/, true],
   ['DELETE', /^\/api\/launcher\/follows$/, true],
   ['POST', /^\/api\/launcher\/review-report$/, true],
+  ['POST', /^\/api\/launcher\/online$/, true],
   ['GET', /^\/api\/public\/(trending|toplist)$/, false],
   ['GET', /^\/api\/admin\/[a-z0-9/?=&_.~-]*$/i, true],
   ['POST', /^\/api\/admin\/[a-z0-9/_.~-]+$/i, true],

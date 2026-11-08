@@ -1,21 +1,21 @@
 {
-  "version": "1.9.1",
-  "setup": "FiveM-Norge-Launcher-Setup-1.9.1.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.9.1.exe",
+  "version": "1.9.2",
+  "setup": "FiveM-Norge-Launcher-Setup-1.9.2.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.9.2.exe",
   "sha256": {
-    "setup": "7f7297982b9f4d0780d7d2da8a5b18a001d8097b121eca1de0542937713256d0",
-    "portable": "02114a052aff7eba9aeee5227ffd5ceb6dd70dcaa1f0553e00199663fa2d3664"
+    "setup": "5c6c42a6524e980273ae850f7e931a90103797890839b05617b94b485a9ec703",
+    "portable": "95baa7e52d4b6287e3b7eab73a4962fea7128027805776697f3626e89d587610"
   },
   "sizes": {
-    "setup": 82500439,
-    "portable": 82181161
+    "setup": 82501127,
+    "portable": 82181819
   },
   "asar": {
-    "file": "app-1.9.1.asar.gz",
-    "sha256": "09ce54d4bc656db6c1d6f3132676a36e7c909a8c5e39ea0b00511900dadaeb70",
-    "size": 2024513,
+    "file": "app-1.9.2.asar.gz",
+    "sha256": "c12aef27f8cd943ebf205ce36b5c3b640b34d4737944a361a176c6e4d055a881",
+    "size": 2025071,
     "electron": "33.4.11"
   },
-  "notes": "Bekreftede Discord-servere vises på serversiden med medlemstall og en ekte «Bli med»-knapp. Admin i launcheren ber om tofaktor-koden fra autentiseringsappen.",
-  "publishedAt": "2026-11-08T10:27:59.741Z"
+  "notes": "Grønn prikk ved venner som er pålogget i launcheren eller på nettsiden, med «Sist pålogget» for de som ikke er det. Du kan skru det av under Venner.",
+  "publishedAt": "2026-11-08T18:30:39.604Z"
 }

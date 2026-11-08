@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { MessageCircle, Play, RefreshCw, UserMinus, UserPlus } from 'lucide-react';
-import { api, errText } from '../api.js';
+import { api, errText, formatAgo } from '../api.js';
 import DiscordIcon from '../components/DiscordIcon.jsx';
 import GroupCard from '../components/GroupCard.jsx';
 import ChatCard from '../components/ChatCard.jsx';
 import BadgesCard from '../components/BadgesCard.jsx';
 import NameTags from '../components/NameTags.jsx';
+import PresenceAvatar from '../components/PresenceAvatar.jsx';
+import { onChatEvent } from '../chatSocket.js';
 
 // Venner er gjensidige: begge må legge hverandre til. Hvor man spiller vises bare
 // når vennen selv har skrudd på «Vis venner hvor jeg spiller».
@@ -37,6 +39,15 @@ export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, 
     const t = setInterval(load, 60_000);
     return () => clearInterval(t);
   }, [user, load]);
+  // Grønn prikk i sanntid når venner logger på eller av
+  useEffect(
+    () =>
+      onChatEvent((d) => {
+        if (d.t !== 'presence') return;
+        setData((cur) => (cur ? { ...cur, friends: cur.friends.map((f) => (f.id === d.id ? { ...f, online: d.online, lastSeen: d.at } : f)) } : cur));
+      }),
+    [],
+  );
 
   if (!user) {
     return (
@@ -84,6 +95,17 @@ export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, 
     }
   };
 
+  const showOnline = data?.showOnline ?? account?.showOnline ?? true;
+  const toggleOnline = async () => {
+    try {
+      await api.backend.api('POST', '/api/launcher/online', { on: !showOnline });
+      setData((d) => (d ? { ...d, showOnline: !showOnline } : d));
+      notify(!showOnline ? 'Vennene dine ser når du er pålogget' : 'Du vises ikke lenger som pålogget');
+    } catch (e) {
+      notify(errText(e));
+    }
+  };
+
   const [pub, setPub] = useState(!!account?.publicProfile);
   useEffect(() => setPub(!!account?.publicProfile), [account?.publicProfile]);
   const profileUrl = account?.user?.username ? `https://fivemnorge.xyz/bruker/${encodeURIComponent(account.user.username)}` : null;
@@ -121,6 +143,14 @@ export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, 
           <button type="button" className={share ? 'switch on' : 'switch'} role="switch" aria-checked={share} aria-label="Vis venner hvor jeg spiller" onClick={toggleShare}><span /></button>
         </div>
         <p className="muted-sm">Bare venner (dere har lagt hverandre til) ser det, og bare mens du spiller. Av som standard.</p>
+      </section>
+
+      <section className="card">
+        <div className="card-head">
+          <h2>Vis venner når jeg er pålogget</h2>
+          <button type="button" className={showOnline ? 'switch on' : 'switch'} role="switch" aria-checked={showOnline} aria-label="Vis venner når jeg er pålogget" onClick={toggleOnline}><span /></button>
+        </div>
+        <p className="muted-sm">En grønn prikk ved navnet ditt når launcheren eller nettsiden er åpen. Bare venner ser den.</p>
       </section>
 
       <section className="card">
@@ -172,10 +202,10 @@ export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, 
           <div>
             {data.friends.map((f) => (
               <div className="friend" key={f.id}>
-                <img src={f.avatar} alt="" />
+                <PresenceAvatar src={f.avatar} name={f.name} online={f.online} size={40} />
                 <div className="ft">
                   <strong>{f.name} <NameTags verified={f.verified} staff={f.staff} size={14} /></strong>
-                  {f.playing ? <small className="playing">Spiller {f.playing.name}</small> : <small>@{f.username}</small>}
+                  {f.playing ? <small className="playing">Spiller {f.playing.name}</small> : f.online ? <small className="online-t">Pålogget</small> : <small>{f.lastSeen ? `Sist pålogget ${formatAgo(f.lastSeen)}` : `@${f.username}`}</small>}
                 </div>
                 {f.playing && (
                   <button className="btn sm play" onClick={() => onPlay({ id: f.playing.serverId, name: f.playing.name })}>

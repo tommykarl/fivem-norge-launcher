@@ -3,6 +3,7 @@ import { Gamepad2, MessageCircle, Play, Send, Trash2, Volume2, VolumeX, X } from
 import { api, errText } from '../api.js';
 import { chatSocket, onChatEvent, sendTyping } from '../chatSocket.js';
 import NameTags from './NameTags.jsx';
+import PresenceAvatar from './PresenceAvatar.jsx';
 
 // Chat med venner. Samme samtaler som under Chat på Min side (fivemnorge.xyz/min-side#chat).
 // Samtalelista hentes av bakgrunnsprosessen hvert 20. sekund; den åpne samtalen hentes hvert 3. sekund.
@@ -26,6 +27,7 @@ export default function ChatCard({ openWith, notify, servers = [], onPlay, invit
   const [invQ, setInvQ] = useState('');
   const typingTimer = useRef(null);
   const typingSent = useRef(0);
+  const [online, setOnline] = useState({});
   const [sound, setSound] = useState(() => {
     try {
       return localStorage.getItem('fnl-chat-sound') !== 'off';
@@ -114,6 +116,7 @@ export default function ChatCard({ openWith, notify, servers = [], onPlay, invit
     () =>
       onChatEvent((d) => {
         if (d.t === 'state') return setLive(d.connected);
+        if (d.t === 'presence') return setOnline((o) => ({ ...o, [d.id]: d.online }));
         if (d.t === 'msg' && d.conv === sel) {
           merge({ friend: conv?.friend || d.friend, messages: [d.m], seenByFriend: conv?.seenByFriend || 0 });
           if (!d.m.mine) {
@@ -209,7 +212,7 @@ export default function ChatCard({ openWith, notify, servers = [], onPlay, invit
             {convs.map((c) => (
               <li key={c.friend.id}>
                 <button className={c.friend.id === sel ? 'chat-conv on' : 'chat-conv'} aria-current={c.friend.id === sel ? 'true' : undefined} onClick={() => setSel(c.friend.id)}>
-                  {c.friend.avatar ? <img src={c.friend.avatar} alt="" /> : <span className="chat-ph">{c.friend.name.charAt(0).toUpperCase()}</span>}
+                  <PresenceAvatar src={c.friend.avatar} name={c.friend.name} online={online[c.friend.id] ?? c.friend.online} size={34} />
                   <span className="chat-cb">
                     <b>{c.friend.name} <NameTags verified={c.friend.verified} staff={c.friend.staff} size={13} /></b>
                     <small>{c.last ? `${c.last.mine ? 'Du: ' : ''}${c.last.text}` : 'Si hei 👋'}</small>

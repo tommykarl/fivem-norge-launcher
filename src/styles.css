@@ -981,3 +981,11 @@ html, body, #root { background: var(--outer); }
 .mfa-form { display: flex; flex-direction: column; gap: 8px; }
 .mfa-form label { font-size: 13px; font-weight: 600; }
 .mfa-in { font-size: 20px; letter-spacing: 0.15em; font-variant-numeric: tabular-nums; max-width: 220px; }
+
+/* ---------- 1.9.2: pålogget ---------- */
+.pres { position: relative; display: inline-flex; flex: none; }
+.pres > img, .pres > .chat-ph { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.pres > i { position: absolute; right: -1px; bottom: -1px; width: 12px; height: 12px; border-radius: 50%; background: var(--green, #3ddc97); box-shadow: 0 0 0 3px var(--surface, #101319); }
+.chat-conv .pres > i { box-shadow: 0 0 0 2px var(--surface, #101319); width: 10px; height: 10px; }
+.friend .pres { margin: 0; }
+.online-t { color: var(--green, #3ddc97) !important; font-weight: 600; }
