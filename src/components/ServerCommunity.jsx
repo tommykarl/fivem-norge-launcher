@@ -82,6 +82,26 @@ export default function ServerCommunity({ server, user, backendEnabled, notify }
           </ul>
         </section>
       )}
+      {info?.discordVerified && (
+        <section className="card dc-card">
+          <div className="dc-h">
+            {info.discordVerified.icon ? <img src={info.discordVerified.icon} alt="" width="48" height="48" /> : <span className="dc-ph" aria-hidden="true">{info.discordVerified.name.charAt(0)}</span>}
+            <div>
+              <strong>{info.discordVerified.name}</strong>
+              <span className="dc-ok" title="Eieren har vist at de administrerer Discord-serveren, og invitasjonen er sjekket">
+                <BadgeCheck size={14} /> Bekreftet Discord
+              </span>
+            </div>
+          </div>
+          {info.discordVerified.members != null && (
+            <div className="dc-n">
+              <span><i className="on" />{Number(info.discordVerified.online || 0).toLocaleString('no')} pålogget</span>
+              <span><i />{Number(info.discordVerified.members).toLocaleString('no')} medlemmer</span>
+            </div>
+          )}
+          <button className="btn dc-btn" onClick={() => api.openExternal(info.discordVerified.invite)}>Bli med på Discord</button>
+        </section>
+      )}
       {info?.profile && (
         <section className="card">
           <div className="card-head">
@@ -89,7 +109,11 @@ export default function ServerCommunity({ server, user, backendEnabled, notify }
           </div>
           <p style={{ whiteSpace: 'pre-wrap' }}>{info.profile.description}</p>
           <div className="form-row">
-            {info.profile.discord && <button className="btn ghost sm" onClick={() => api.openExternal(info.profile.discord)}><ExternalLink size={14} /> Discord</button>}
+            {info.profile.discord && !info.discordVerified && (
+              <button className="btn ghost sm" onClick={() => api.openExternal(info.profile.discord)} title="Lagt inn av eieren, men ikke bekreftet av FiveM Norge">
+                <ExternalLink size={14} /> Discord <span className="muted-sm">(ikke bekreftet)</span>
+              </button>
+            )}
             {info.profile.website && <button className="btn ghost sm" onClick={() => api.openExternal(info.profile.website)}><ExternalLink size={14} /> Nettside</button>}
           </div>
         </section>

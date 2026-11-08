@@ -963,3 +963,21 @@ html, body, #root { background: var(--outer); }
 .invite-list .friend:first-child { border-top: 0; }
 .chat-head-r { display: inline-flex; align-items: center; gap: 8px; }
 .chat-sound { width: 30px; height: 30px; }
+
+/* ---------- 1.9.1: bekreftet Discord og tofaktor ---------- */
+.dc-card { display: flex; flex-direction: column; gap: 10px; background: linear-gradient(180deg, rgba(88, 101, 242, 0.1), transparent 70%), var(--surface, #101319); }
+.dc-h { display: flex; gap: 12px; align-items: center; }
+.dc-h img, .dc-ph { width: 48px; height: 48px; border-radius: 14px; flex: none; object-fit: cover; }
+.dc-ph { display: grid; place-items: center; background: #5865f2; color: #fff; font-weight: 800; font-size: 20px; }
+.dc-h strong { display: block; font-size: 16px; }
+.dc-ok { display: inline-flex; gap: 4px; align-items: center; font-size: 12.5px; color: #8fb0ff; }
+.dc-n { display: flex; gap: 16px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.dc-n i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #7f8aa3; margin-right: 6px; }
+.dc-n i.on { background: var(--green, #3ddc97); }
+.dc-btn { background: #5865f2; border-color: #5865f2; color: #fff; justify-content: center; }
+.dc-btn:hover { background: #4752c4; }
+.mfa-card { max-width: 560px; display: flex; flex-direction: column; gap: 12px; }
+.mfa-card h2 { display: inline-flex; gap: 8px; align-items: center; }
+.mfa-form { display: flex; flex-direction: column; gap: 8px; }
+.mfa-form label { font-size: 13px; font-weight: 600; }
+.mfa-in { font-size: 20px; letter-spacing: 0.15em; font-variant-numeric: tabular-nums; max-width: 220px; }

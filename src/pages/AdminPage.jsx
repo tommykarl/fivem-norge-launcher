@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Check, EyeOff, ExternalLink, Eye, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { Check, EyeOff, ExternalLink, Eye, Plus, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react';
 import { api, errText, formatAgo } from '../api.js';
 
 // Admin i launcheren: det viktigste fra adminpanelet på fivemnorge.xyz.
@@ -45,10 +45,30 @@ export default function AdminPage({ account, adminUrl, notify }) {
   const perms = new Set(info.perms || []);
   const has = (p) => canManage || perms.has(p);
 
+  // Tofaktor: adminpanelet krever en kode fra autentiseringsappen (samme som på nettsiden)
+  const [mfa, setMfa] = useState(null); // null = sjekker, 'ok', 'code', 'setup'
+  const [code, setCode] = useState('');
+  const [mfaErr, setMfaErr] = useState('');
+  useEffect(() => {
+    call('GET', '/mfa')
+      .then((m) => setMfa(!m.required || m.verified ? 'ok' : m.on ? 'code' : 'setup'))
+      .catch(() => setMfa('ok'));
+  }, []);
+  const verify = async (e) => {
+    e.preventDefault();
+    setMfaErr('');
+    try {
+      await call('POST', '/mfa/verify', { code });
+      setCode('');
+      setMfa('ok');
+    } catch (er) {
+      setMfaErr(errText(er));
+    }
+  };
   const loadOv = useCallback(() => call('GET', '/overview').then(setOv).catch((e) => notify(errText(e))), [notify]);
   useEffect(() => {
-    loadOv();
-  }, [loadOv]);
+    if (mfa === 'ok') loadOv();
+  }, [loadOv, mfa]);
 
   // Fanene følger tilgangene rollen har fått i adminpanelet
   const TABS = [
@@ -62,6 +82,34 @@ export default function AdminPage({ account, adminUrl, notify }) {
   useEffect(() => {
     if (!TABS.some((t) => t[0] === tab)) setTab('overview');
   });
+
+  if (mfa !== 'ok') {
+    return (
+      <div className="page">
+        <section className="card mfa-card">
+          <h2><ShieldCheck size={20} strokeWidth={1.8} /> Tofaktor</h2>
+          {mfa === null && <p className="muted-sm">Sjekker …</p>}
+          {mfa === 'setup' && (
+            <>
+              <p>Adminpanelet krever tofaktor. Slå det på i adminpanelet på nettsiden først (det tar ett minutt), så kan du bruke admin her også.</p>
+              {adminUrl && <button className="btn play" onClick={() => api.openExternal(adminUrl)}><ExternalLink size={15} /> Åpne adminpanelet</button>}
+            </>
+          )}
+          {mfa === 'code' && (
+            <form onSubmit={verify} className="mfa-form">
+              <label htmlFor="mfa-code">Skriv inn koden fra autentiseringsappen, eller en reservekode</label>
+              <div className="form-row">
+                <input id="mfa-code" className="input mfa-in" value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" autoComplete="one-time-code" maxLength={9} placeholder="123 456" autoFocus required />
+                <button className="btn play">Fortsett</button>
+              </div>
+              {mfaErr && <p className="error-text" role="alert">{mfaErr}</p>}
+              <p className="muted-sm">Koden gjelder i 12 timer i launcheren.</p>
+            </form>
+          )}
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="page">

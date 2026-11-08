@@ -1,21 +1,21 @@
 {
-  "version": "1.9.0",
-  "setup": "FiveM-Norge-Launcher-Setup-1.9.0.exe",
-  "portable": "FiveM-Norge-Launcher-Portable-1.9.0.exe",
+  "version": "1.9.1",
+  "setup": "FiveM-Norge-Launcher-Setup-1.9.1.exe",
+  "portable": "FiveM-Norge-Launcher-Portable-1.9.1.exe",
   "sha256": {
-    "setup": "49c508cb02b57ceaa72df1805c39acf3313181e8b564f1dd6d2928a54736bafd",
-    "portable": "c6889b8efbf3015abb515cb748fc595a8bd0a86d0b878ed7e6edae8bde3ede67"
+    "setup": "7f7297982b9f4d0780d7d2da8a5b18a001d8097b121eca1de0542937713256d0",
+    "portable": "02114a052aff7eba9aeee5227ffd5ceb6dd70dcaa1f0553e00199663fa2d3664"
   },
   "sizes": {
-    "setup": 82499641,
-    "portable": 82180325
+    "setup": 82500439,
+    "portable": 82181161
   },
   "asar": {
-    "file": "app-1.9.0.asar.gz",
-    "sha256": "07ac103f7426af2221d56402a7839deeda1b6dde6cf4015b0384cf800151895b",
-    "size": 2023562,
+    "file": "app-1.9.1.asar.gz",
+    "sha256": "09ce54d4bc656db6c1d6f3132676a36e7c909a8c5e39ea0b00511900dadaeb70",
+    "size": 2024513,
     "electron": "33.4.11"
   },
-  "notes": "Chatten er nå i sanntid: meldinger kommer med en gang, du ser når vennen skriver, og det kommer en lyd (kan skrus av). Inviter venner til en server fra serversiden eller chatten – de kobler til med ett klikk. Nytt kort «Merkene dine» under Venner, og blått verifisert-merke og Staff-skjold vises ved navn. Varselet om antall spillere kan lagres på kontoen, og du kan rapportere anmeldelser til staben.",
-  "publishedAt": "2026-11-07T23:11:45.320Z"
+  "notes": "Bekreftede Discord-servere vises på serversiden med medlemstall og en ekte «Bli med»-knapp. Admin i launcheren ber om tofaktor-koden fra autentiseringsappen.",
+  "publishedAt": "2026-11-08T10:27:59.741Z"
 }
