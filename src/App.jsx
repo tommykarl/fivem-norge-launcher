@@ -462,6 +462,7 @@ export default function App() {
           )}
           {route.name === 'home' && (
             <HomePage
+              siteUrl={backend.url}
               user={user}
               servers={shownServers}
               favorites={favorites}

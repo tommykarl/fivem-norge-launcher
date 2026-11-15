@@ -870,7 +870,7 @@ html, body, #root { background: var(--outer); }
   --green-text: #0d6b45; --gold-text: #7a4f00; --down-text: #a3172c; --accent-text: #a3172c; --gold-star: #8a5a00;
   color: var(--text); border: 0 !important; border-radius: 30px;
 }
-.pc-mint { background: #a9d6c3; } .pc-slate { background: #c3c9d6; } .pc-lilac { background: #c6c1dc; } .pc-sand { background: #cfc39f; } .pc-olive { background: #c9c7a6; }
+.pc-mint { background: #a9d6c3; } .pc-sky { background: #b6cbe6; } .pc-slate { background: #c3c9d6; } .pc-lilac { background: #c6c1dc; } .pc-sand { background: #cfc39f; } .pc-olive { background: #c9c7a6; }
 .pc h2 { color: var(--text); }
 .pc .mountains { display: none; }
 .pc .hero-left .server-icon { border: 0; }
@@ -989,3 +989,11 @@ html, body, #root { background: var(--outer); }
 .chat-conv .pres > i { box-shadow: 0 0 0 2px var(--surface, #101319); width: 10px; height: 10px; }
 .friend .pres { margin: 0; }
 .online-t { color: var(--green, #3ddc97) !important; font-weight: 600; }
+
+/* Søknadene dine */
+.apps-card { display: flex; flex-direction: column; gap: 12px; }
+.apps-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.apps-list li { display: flex; align-items: center; gap: 12px; }
+.apps-text { flex: 1; min-width: 0; }
+.apps-text .muted-sm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.apps-card .text-btn { align-self: flex-start; }

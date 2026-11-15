@@ -3,6 +3,7 @@ import { Bell, Clock, Loader2, Play, TrendingUp, Users } from 'lucide-react';
 import ServerIcon from '../components/ServerIcon.jsx';
 import Mountains from '../components/Mountains.jsx';
 import WeekCard from '../components/WeekCard.jsx';
+import AppsCard from '../components/AppsCard.jsx';
 import { api, formatAgo, formatDuration, greeting } from '../api.js';
 
 function MiniRow({ server, sub, onOpen, right }) {
@@ -19,7 +20,7 @@ function MiniRow({ server, sub, onOpen, right }) {
 }
 
 export default function HomePage({
-  user, servers, favorites, activity, watch, totalPlayers, onOpen, onPlay, go, onLogin, authBusy, onMonth,
+  user, servers, favorites, activity, watch, totalPlayers, onOpen, onPlay, go, onLogin, authBusy, onMonth, siteUrl,
 }) {
   const byId = new Map(servers.map((s) => [s.id, s]));
   const [communities, setCommunities] = useState({ loading: true });
@@ -82,6 +83,7 @@ export default function HomePage({
       )}
 
       <div className="home-grid">
+        {user && <AppsCard siteUrl={siteUrl} onOpenServer={(s) => onOpen(byId.get(s.id) || s)} />}
         <WeekCard refreshKey={Math.floor((activity.totalMs || 0) / 60_000)} onOpen={onOpen} />
         {onMonth && (() => {
           const d = new Date();

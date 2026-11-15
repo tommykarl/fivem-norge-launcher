@@ -466,6 +466,7 @@ const ALLOWED = [
   ['GET', /^\/api\/launcher\/my-servers$/, true],
   ['POST', /^\/api\/launcher\/server-profile$/, true],
   ['GET', /^\/api\/launcher\/notifs$/, true],
+  ['GET', /^\/api\/launcher\/apps$/, true],
   ['POST', /^\/api\/launcher\/notifs\/read$/, true],
   ['GET', /^\/api\/launcher\/group$/, true],
   ['POST', /^\/api\/launcher\/group$/, true],
