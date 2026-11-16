@@ -87,6 +87,9 @@ function BugReport({ user, backend, notify, onLogin, authBusy }) {
   if (!backend?.enabled) {
     return <div className="set-row"><div className="set-text"><div className="set-desc">Feilmeldinger krever kontakt med fivemnorge.xyz.</div></div></div>;
   }
+  if (backend.config?.reports?.launcherOff) {
+    return <div className="set-row"><div className="set-text"><div className="set-title">Rapporter en feil</div><div className="set-desc">Feilmeldinger er stengt akkurat nå. Prøv igjen senere.</div></div></div>;
+  }
   // Staben kan stenge for feilmeldinger uten innlogging (adminpanelet → Oversikt)
   if (backend.config?.reports?.launcherLoginOnly && !user) {
     return (

@@ -457,8 +457,30 @@ function Errors({ notify, onChange }) {
       notify(errText(err));
     }
   };
+  const [confirmAll, setConfirmAll] = useState(false);
+  const resolveAll = async () => {
+    if (!confirmAll) {
+      setConfirmAll(true);
+      setTimeout(() => setConfirmAll(false), 4000);
+      return;
+    }
+    setConfirmAll(false);
+    try {
+      const r = await call('POST', '/errors/resolve-all', {});
+      notify(r.closed ? `Lukket ${r.closed} feil` : 'Ingen åpne feil å lukke');
+      load();
+      onChange();
+    } catch (err) {
+      notify(errText(err));
+    }
+  };
   return (
     <div className="admin-list">
+      {list?.length > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 0 8px' }}>
+          <button className="btn sm" onClick={resolveAll}><Check size={14} /> {confirmAll ? 'Trykk igjen for å lukke alle' : 'Lukk alle'}</button>
+        </div>
+      )}
       {list?.length === 0 && <p className="muted-sm" style={{ padding: 16 }}>Ingen åpne feil. 🎉</p>}
       {list?.map((e) => (
         <div className="admin-item" key={e.id}>
