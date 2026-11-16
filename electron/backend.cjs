@@ -86,7 +86,7 @@ async function call(path, { method = 'GET', body, token } = {}) {
 
 function setConfig(c) {
   if (!c || typeof c !== 'object') return;
-  config = { announcements: Array.isArray(c.announcements) ? c.announcements : [], servers: c.servers || {} };
+  config = { announcements: Array.isArray(c.announcements) ? c.announcements : [], servers: c.servers || {}, reports: c.reports && typeof c.reports === 'object' ? { launcherLoginOnly: !!c.reports.launcherLoginOnly } : { launcherLoginOnly: false } };
   deps.emit('backend:changed');
 }
 

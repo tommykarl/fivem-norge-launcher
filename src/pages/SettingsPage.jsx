@@ -62,7 +62,7 @@ function Section({ icon: Icon, title, children }) {
 }
 
 // Brukeren melder fra om en feil. Havner under «Feil» i adminpanelet (merket «Fra bruker»).
-function BugReport({ user, backend, notify }) {
+function BugReport({ user, backend, notify, onLogin, authBusy }) {
   const empty = { title: '', description: '', contact: '', includeSystem: true };
   const [f, setF] = useState(empty);
   const [busy, setBusy] = useState(false);
@@ -87,11 +87,23 @@ function BugReport({ user, backend, notify }) {
   if (!backend?.enabled) {
     return <div className="set-row"><div className="set-text"><div className="set-desc">Feilmeldinger krever kontakt med fivemnorge.xyz.</div></div></div>;
   }
+  // Staben kan stenge for feilmeldinger uten innlogging (adminpanelet → Oversikt)
+  if (backend.config?.reports?.launcherLoginOnly && !user) {
+    return (
+      <div className="set-row">
+        <div className="set-text">
+          <div className="set-title">Rapporter en feil</div>
+          <div className="set-desc">Du må være logget inn med Discord for å sende feilmeldinger. Du kan sende inntil 4 i måneden.</div>
+        </div>
+        {onLogin && <button className="btn discord" onClick={onLogin} disabled={authBusy}><DiscordIcon /> Logg inn</button>}
+      </div>
+    );
+  }
   return (
     <form className="set-row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 12 }} onSubmit={submit}>
       <div className="set-text" style={{ flex: 'none' }}>
         <div className="set-title">Rapporter en feil</div>
-        <div className="set-desc">Noe som ikke virker? Beskriv det, så ser staben på det.{user ? ` Sendes som ${user.displayName}.` : ' Du er ikke innlogget, så rapporten sendes uten navn.'}</div>
+        <div className="set-desc">Noe som ikke virker? Beskriv det, så ser staben på det. Du kan sende inntil 4 i måneden.{user ? ` Sendes som ${user.displayName}.` : ' Du er ikke innlogget, så rapporten sendes uten navn.'}</div>
       </div>
       <label className="field">Hva gjelder det?
         <input className="input" required minLength={5} maxLength={140} value={f.title} onChange={set('title')} placeholder="F.eks. «Logoene vises ikke» eller «Køen kobler ikke til»" />
@@ -364,7 +376,7 @@ export default function SettingsPage({
       </Section>
 
       <Section icon={MessageSquareWarning} title="Meld fra om feil">
-        <BugReport user={user} backend={backend} notify={notify} />
+        <BugReport user={user} backend={backend} notify={notify} onLogin={onLogin} authBusy={authBusy} />
       </Section>
 
       <Section icon={Bug} title="Feilsøking">
