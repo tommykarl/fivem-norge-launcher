@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  AlertTriangle, Bell, Bug, MessageSquareWarning, Send, Cloud, ExternalLink, Database, Download, FolderOpen, Info, Keyboard, Loader2, LogOut, Monitor, Palette, RefreshCw, RotateCcw, Server, Trash2,
+  AlertTriangle, Bell, Bug, Gauge, MessageSquareWarning, Send, Cloud, ExternalLink, Database, Download, FolderOpen, Info, Keyboard, Loader2, LogOut, Monitor, Palette, RefreshCw, RotateCcw, Server, Trash2,
 } from 'lucide-react';
 import { ShortcutList } from '../components/ShortcutsModal.jsx';
 import DiscordIcon from '../components/DiscordIcon.jsx';
@@ -58,6 +58,50 @@ function Section({ icon: Icon, title, children }) {
       <h2><Icon size={18} strokeWidth={1.8} /> {title}</h2>
       <div className="set-card">{children}</div>
     </section>
+  );
+}
+
+// Ytelsestips: leser GTA V sine grafikkinnstillinger (uten å endre noe) og foreslår endringer som gir flere FPS
+const IMPACT = { stor: 'Stor gevinst', middels: 'Middels', liten: 'Liten' };
+function PerfTips() {
+  const [r, setR] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const run = async () => {
+    setBusy(true);
+    try {
+      setR(await api.perf.analyze());
+    } catch {
+      setR({ found: false, tips: [] });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="set-row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="set-text">
+          <div className="set-title">Sjekk grafikkinnstillingene</div>
+          <div className="set-desc">Leser innstillingene til GTA V og foreslår endringer som gir flere FPS på FiveM-servere. Ingenting endres automatisk.</div>
+        </div>
+        <button className="btn" onClick={run} disabled={busy}>{busy ? <Loader2 size={16} className="spin" /> : <Gauge size={16} />} Sjekk nå</button>
+      </div>
+      {r && !r.found && <p className="muted-sm">Fant ikke innstillingene til GTA V. Start spillet én gang og endre en grafikkinnstilling, så lagres filen.</p>}
+      {r?.found && (
+        <>
+          <p className="muted-sm">{r.gpu ? `Skjermkort: ${r.gpu}` : ''}{r.resolution ? ` · Oppløsning: ${r.resolution}` : ''}</p>
+          {r.tips.length ? (
+            <ul className="perf-tips">
+              {r.tips.map((t) => (
+                <li key={t.id}>
+                  <span className={`perf-imp ${t.impact}`}>{IMPACT[t.impact]}</span>
+                  <div><b>{t.title}</b><p className="muted-sm">{t.detail}</p></div>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="muted-sm">Innstillingene dine ser allerede bra ut for FiveM 👍</p>}
+        </>
+      )}
+    </div>
   );
 }
 
@@ -376,6 +420,13 @@ export default function SettingsPage({
         <Row title="Vis hurtigtaster hvor som helst" desc="Trykk ? (spørsmålstegn) når du ikke skriver i et felt.">
           <button className="btn" onClick={onShowShortcuts}><Keyboard size={16} /> Vis</button>
         </Row>
+        <Row title="Ctrl + Alt + F overalt" desc="Kobler til favoritten øverst, også når launcheren ligger i bakgrunnen eller du er i et annet program.">
+          <Toggle label="Global hurtigtast" checked={!!settings.globalHotkey} onChange={(v) => setSetting({ globalHotkey: v })} />
+        </Row>
+      </Section>
+
+      <Section icon={Gauge} title="Ytelse i FiveM">
+        <PerfTips />
       </Section>
 
       <Section icon={MessageSquareWarning} title="Meld fra om feil">

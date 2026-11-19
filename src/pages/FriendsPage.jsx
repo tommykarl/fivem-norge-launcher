@@ -160,9 +160,20 @@ export default function FriendsPage({ user, account, onLogin, authBusy, onPlay, 
         </div>
         <p className="muted-sm">Viser navnet ditt og spilletiden din per server denne måneden på fivemnorge.xyz. Oppdateres hver time. Av som standard.</p>
         {pub && profileUrl ? (
-          <button type="button" className="btn ghost sm" style={{ alignSelf: 'flex-start' }} onClick={() => api.openExternal(profileUrl)}>
-            Se profilen din
-          </button>
+          <>
+            <img className="profile-card-img" src={`https://fivemnorge.xyz/og/bruker/${encodeURIComponent(account.user.username)}.png`} alt="Profilkortet ditt" loading="lazy" />
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button type="button" className="btn sm" onClick={async () => { await navigator.clipboard.writeText(profileUrl); notify('Lenken er kopiert – lim den inn på Discord, så vises profilkortet'); }}>
+                Kopier lenke til profilkortet
+              </button>
+              <button type="button" className="btn ghost sm" onClick={() => api.openExternal(`https://fivemnorge.xyz/og/bruker/${encodeURIComponent(account.user.username)}.png`)}>
+                Last ned bilde
+              </button>
+              <button type="button" className="btn ghost sm" onClick={() => api.openExternal(profileUrl)}>
+                Se profilen din
+              </button>
+            </div>
+          </>
         ) : null}
       </section>
 

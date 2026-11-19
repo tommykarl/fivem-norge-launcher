@@ -21,6 +21,7 @@ const SETTINGS_SCHEMA = {
   autoInstallUpdates: 'bool',
   telemetry: 'bool',
   friendAlerts: 'bool',
+  globalHotkey: 'bool',
   theme: ['dark', 'light', 'system'],
   accent: ['red', 'blue', 'green', 'purple', 'orange'],
 };
@@ -38,6 +39,7 @@ const SETTINGS_DEFAULT = {
   autoInstallUpdates: false,
   telemetry: true, // anonym statistikk og feilrapporter til egen backend
   friendAlerts: true, // Windows-varsel når en venn begynner å spille (bare venner som deler det)
+  globalHotkey: false, // Ctrl+Alt+F kobler til favoritten øverst, også når launcheren er i bakgrunnen
   theme: 'dark',
   accent: 'red',
 };

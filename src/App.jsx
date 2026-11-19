@@ -28,6 +28,9 @@ export default function App() {
   const [authBusy, setAuthBusy] = useState(false);
   const [servers, setServers] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const favRef = useRef([]);
+  favRef.current = favorites;
+  const connectRef = useRef(null);
   const [activity, setActivity] = useState({ recent: [], playtime: {}, totalMs: 0, active: null });
   const [watch, setWatch] = useState({});
   const [loading, setLoading] = useState(true);
@@ -190,7 +193,7 @@ export default function App() {
       api.on('update:progress', (pct) => setUpdateState((cur) => (cur?.phase === 'downloading' ? { ...cur, pct } : cur))),
     ];
     // Globale hurtigtaster (se ShortcutsModal for liste)
-    const NAV_KEYS = { 1: 'home', 2: 'servers', 3: 'saved', 4: 'recent', 5: 'status' };
+    const NAV_KEYS = { 1: 'home', 2: 'servers', 3: 'saved', 4: 'recent', 5: 'status', 6: 'friends' };
     const onKey = (e) => {
       const ctrl = e.ctrlKey || e.metaKey;
       const k = e.key.toLowerCase();
@@ -201,6 +204,15 @@ export default function App() {
         setModal(null);
         setRoute((r) => (['servers', 'saved', 'recent'].includes(r.name) ? r : { name: 'servers' }));
         setFocusSignal((n) => n + 1);
+      } else if (ctrl && e.shiftKey && k === 'f') {
+        // Koble til favoritten øverst
+        e.preventDefault();
+        const fav = favRef.current[0];
+        if (fav) connectRef.current?.(fav);
+        else notify('Du har ingen lagrede servere ennå');
+      } else if (ctrl && !e.shiftKey && k === 'n') {
+        e.preventDefault();
+        setModal('notifs');
       } else if (ctrl && k === 'l') {
         e.preventDefault();
         setModal('connect');
@@ -365,6 +377,8 @@ export default function App() {
       notify(errText(e));
     }
   };
+  connectRef.current = connect;
+
 
   const setWatchFor = async (server, patch) => {
     try {

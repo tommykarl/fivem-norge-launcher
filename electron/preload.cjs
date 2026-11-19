@@ -105,4 +105,7 @@ contextBridge.exposeInMainWorld('launcher', {
     close: () => ipcRenderer.send('win:close'),
   },
   openExternal: (url) => ipcRenderer.invoke('open:external', url),
+  perf: {
+    analyze: () => ipcRenderer.invoke('perf:analyze'),
+  },
 });

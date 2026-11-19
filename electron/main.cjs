@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
-const { app, BrowserWindow, ipcMain, shell, Notification, dialog, session: electronSession } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Notification, dialog, globalShortcut, session: electronSession } = require('electron');
 
 // Leser .env fra (1) prosjektmappa/app-pakken, (2) mappa der .exe ligger, (3) %APPDATA%\FiveM Norge Launcher
 // Første verdi som finnes vinner, så en .env ved siden av .exe kan overstyre den innebygde.
@@ -24,6 +24,7 @@ const appctl = require('./appctl.cjs');
 const { CFX_HEADERS } = require('./cfxHttp.cjs');
 const status = require('./status.cjs');
 const backend = require('./backend.cjs');
+const perftips = require('./perftips.cjs');
 const { jsonFile } = require('./jsonfile.cjs');
 const versionFile = jsonFile('version.json', { last: null, notes: {} });
 
@@ -174,6 +175,7 @@ if (!app.requestSingleInstanceLock()) {
     // Nødvendig for at Windows-varsler skal vises med riktig navn
     if (process.platform === 'win32') app.setAppUserModelId('no.fivemnorge.launcher');
     session = store.loadSession();
+    if (features.getSettings().globalHotkey) applyGlobalHotkey(true);
     icons.registerHandler(fivem.iconVersion);
     // FiveM sitt API vil ha Origin/Referer fra servers.fivem.net. Legg dem på alle kall
     // fra appen (blant annet <img> med logoer), så bildene lastes som på FiveM sin nettside.
@@ -591,8 +593,28 @@ ipcMain.handle('discord:communities', async () => {
 
 // ---- Innstillinger ----
 ipcMain.handle('settings:get', () => features.getSettings());
+ipcMain.handle('perf:analyze', () => perftips.analyze());
+
+// Global hurtigtast (virker også når launcheren er i bakgrunnen): koble til favoritten øverst
+const GLOBAL_KEY = 'CommandOrControl+Alt+F';
+function applyGlobalHotkey(on) {
+  try {
+    globalShortcut.unregister(GLOBAL_KEY);
+    if (!on) return true;
+    return globalShortcut.register(GLOBAL_KEY, () => {
+      const favs = session?.user ? store.getFavorites(session.user.id) : [];
+      if (favs[0]) connectTo(favs[0]).catch(() => {});
+      else if (Notification.isSupported()) new Notification({ title: 'FiveM Norge', body: 'Du har ingen lagrede servere ennå.' }).show();
+    });
+  } catch {
+    return false;
+  }
+}
+app.on('will-quit', () => globalShortcut.unregisterAll());
+
 ipcMain.handle('settings:set', (_e, patch) => {
   const s = features.setSettings(patch);
+  if (patch && 'globalHotkey' in patch) applyGlobalHotkey(s.globalHotkey);
   presence.configure(CLIENT_ID, s.rpc);
   appctl.setTray(s.tray, () => win);
   refreshTray();
