@@ -4,6 +4,7 @@ import ServerIcon from '../components/ServerIcon.jsx';
 import Mountains from '../components/Mountains.jsx';
 import WeekCard from '../components/WeekCard.jsx';
 import AppsCard from '../components/AppsCard.jsx';
+import BlogCard from '../components/BlogCard.jsx';
 import { api, formatAgo, formatDuration, greeting } from '../api.js';
 
 function MiniRow({ server, sub, onOpen, right }) {
@@ -84,6 +85,7 @@ export default function HomePage({
 
       <div className="home-grid">
         {user && <AppsCard siteUrl={siteUrl} onOpenServer={(s) => onOpen(byId.get(s.id) || s)} />}
+        <BlogCard />
         <WeekCard refreshKey={Math.floor((activity.totalMs || 0) / 60_000)} onOpen={onOpen} />
         {onMonth && (() => {
           const d = new Date();

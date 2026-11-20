@@ -455,7 +455,7 @@ async function pollFriends() {
 
 // Kall fra grensesnittet. Bare adresser på denne lista er lov.
 const ALLOWED = [
-  ['GET', /^\/api\/public\/(live|server\/[a-z0-9]{4,10})$/i, false],
+  ['GET', /^\/api\/public\/(live|blog|server\/[a-z0-9]{4,10})$/i, false],
   ['POST', /^\/api\/launcher\/review$/, true],
   ['DELETE', /^\/api\/launcher\/review$/, true],
   ['GET', /^\/api\/launcher\/friends$/, true],
