@@ -259,7 +259,8 @@ async function downloadUpdate(u, onProgress) {
   return downloaded;
 }
 
-function installUpdate() {
+// hidden: launcheren startes skjult (ved klokka) etterpå – brukes når oppdateringen installeres i bakgrunnen
+function installUpdate({ hidden = false } = {}) {
   if (!downloaded || !fs.existsSync(downloaded.file)) throw new Error('Ingen oppdatering er lastet ned');
   if (downloaded.kind === 'patch') {
     // Et lite skript venter til launcheren er lukket, bytter app.asar og starter den igjen.
@@ -282,10 +283,21 @@ function installUpdate() {
       `if errorlevel 1 move /Y ${q(path.join(res, 'app.asar.old'))} ${q(path.join(res, 'app.asar'))} >nul 2>&1`,
       `del /F /Q ${q(path.join(res, 'app.asar.old'))} >nul 2>&1`,
       ':start',
-      `start "" ${q(process.execPath)}`,
+      `start "" ${q(process.execPath)}${hidden ? ' --hidden' : ''}`,
       '(goto) 2>nul & del "%~f0"',
     ].join('\r\n');
     const file = path.join(app.getPath('temp'), `fivem-norge-oppdatering-${Date.now()}.cmd`);
+    fs.writeFileSync(file, script);
+    const child = spawn('cmd.exe', ['/d', '/c', file], { detached: true, stdio: 'ignore', windowsHide: true });
+    child.unref();
+    setTimeout(() => app.exit(0), 300);
+    return true;
+  }
+  if (hidden) {
+    // Installer i stillhet, og start launcheren skjult når installasjonen er ferdig
+    const q = (p) => `"${p.replace(/"/g, '')}"`;
+    const script = ['@echo off', 'ping -n 3 127.0.0.1 >nul', `start "" /wait ${q(downloaded.file)} /S`, `start "" ${q(process.execPath)} --hidden`, '(goto) 2>nul & del "%~f0"'].join('\r\n');
+    const file = path.join(app.getPath('temp'), `fivem-norge-installer-${Date.now()}.cmd`);
     fs.writeFileSync(file, script);
     const child = spawn('cmd.exe', ['/d', '/c', file], { detached: true, stdio: 'ignore', windowsHide: true });
     child.unref();

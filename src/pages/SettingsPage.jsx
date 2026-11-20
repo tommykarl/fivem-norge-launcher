@@ -365,7 +365,7 @@ export default function SettingsPage({
         <Row title="Se etter oppdateringer ved oppstart">
           <Toggle label="Se etter oppdateringer ved oppstart" checked={settings.autoUpdateCheck} onChange={(v) => setSetting({ autoUpdateCheck: v })} />
         </Row>
-        <Row title="Last ned oppdateringer automatisk" desc="Nye versjoner lastes ned i bakgrunnen. Du velger selv når launcheren starter på nytt.">
+        <Row title="Last ned oppdateringer automatisk" desc="Nye versjoner lastes ned i bakgrunnen og installeres når launcheren ligger ved klokka, du ikke har brukt den på 10 minutter og FiveM ikke kjører. Du kan også starte på nytt selv.">
           <Toggle label="Last ned oppdateringer automatisk" checked={settings.autoInstallUpdates} onChange={(v) => setSetting({ autoInstallUpdates: v })} />
         </Row>
         {updateState?.phase === 'error' && <div className="set-row"><div className="notice warn"><AlertTriangle size={16} /> {updateState.error}</div></div>}

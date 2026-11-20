@@ -327,6 +327,26 @@ app.on('before-quit', () => {
   presence.stop();
 });
 
+// Automatisk oppdatering i bakgrunnen: er en ny versjon lastet ned og «Last ned oppdateringer automatisk» på,
+// installeres den når launcheren ligger skjult ved klokka, ingen har brukt den på 10 minutter og FiveM ikke kjører.
+let lastShown = Date.now();
+setInterval(async () => {
+  try {
+    if (win && !win.isDestroyed() && win.isVisible()) {
+      lastShown = Date.now();
+      return;
+    }
+    if (!features.getSettings().autoInstallUpdates || !appctl.downloadedVersion() || !appctl.hasTray()) return;
+    if (Date.now() - lastShown < 10 * 60_000) return;
+    if (await fivemCache.isFiveMRunning()) return;
+    console.log('[oppdatering] installerer', appctl.downloadedVersion(), 'i bakgrunnen');
+    quitting = true;
+    appctl.installUpdate({ hidden: true });
+  } catch (e) {
+    console.warn('[oppdatering] bakgrunn:', e.message);
+  }
+}, 60_000).unref?.();
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
@@ -712,6 +732,28 @@ ipcMain.handle('fivemcache:clear', (_e, keys) => fivemCache.clear(Array.isArray(
 ipcMain.on('win:minimize', () => win?.minimize());
 ipcMain.on('win:maximize', () => (win?.isMaximized() ? win.unmaximize() : win?.maximize()));
 ipcMain.on('win:close', () => win?.close());
+// Minimodus: lite vindu som ligger øverst. Husker størrelsen på det vanlige vinduet.
+let normalBounds = null;
+ipcMain.handle('win:mini', (_e, on) => {
+  if (!win || win.isDestroyed()) return false;
+  if (on) {
+    if (!normalBounds) normalBounds = { bounds: win.getBounds(), max: win.isMaximized() };
+    if (win.isMaximized()) win.unmaximize();
+    win.setMinimumSize(280, 240);
+    const b = win.getBounds();
+    win.setBounds({ x: b.x + b.width - 340, y: b.y, width: 320, height: 460 });
+    win.setAlwaysOnTop(true, 'floating');
+  } else {
+    win.setAlwaysOnTop(false);
+    win.setMinimumSize(980, 620);
+    if (normalBounds) {
+      win.setBounds(normalBounds.bounds);
+      if (normalBounds.max) win.maximize();
+    }
+    normalBounds = null;
+  }
+  return !!on;
+});
 ipcMain.on('app:quit', () => {
   quitting = true;
   app.quit();

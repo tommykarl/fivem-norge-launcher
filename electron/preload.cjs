@@ -103,6 +103,7 @@ contextBridge.exposeInMainWorld('launcher', {
     minimize: () => ipcRenderer.send('win:minimize'),
     maximize: () => ipcRenderer.send('win:maximize'),
     close: () => ipcRenderer.send('win:close'),
+    mini: (on) => ipcRenderer.invoke('win:mini', !!on),
   },
   openExternal: (url) => ipcRenderer.invoke('open:external', url),
   perf: {

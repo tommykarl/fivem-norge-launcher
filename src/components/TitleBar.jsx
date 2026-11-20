@@ -1,9 +1,9 @@
-import { Bell, Minus, Search, Square, X } from 'lucide-react';
+import { Bell, Minimize2, Minus, Search, Square, X } from 'lucide-react';
 import { api } from '../api.js';
 import DiscordIcon from './DiscordIcon.jsx';
 
 // Topplinja: tittel, søk, live-tall, varsler og konto. Hele linja kan dras for å flytte vinduet.
-export default function TitleBar({ title, sub, totalPlayers = 0, serverCount = 0, user, roleInfo, unread = 0, onOpenNotifs, onSearch, onLogin, authBusy, showBell }) {
+export default function TitleBar({ title, sub, totalPlayers = 0, serverCount = 0, user, roleInfo, unread = 0, onOpenNotifs, onSearch, onLogin, authBusy, showBell, onMini }) {
   const w = api.win;
   return (
     <header className="topbar">
@@ -37,6 +37,7 @@ export default function TitleBar({ title, sub, totalPlayers = 0, serverCount = 0
           </button>
         )}
         <div className="win-controls">
+          {onMini && <button onClick={onMini} aria-label="Minimodus" title="Minimodus (Ctrl+M)"><Minimize2 size={13} /></button>}
           <button onClick={w.minimize} aria-label="Minimer"><Minus size={14} /></button>
           <button onClick={w.maximize} aria-label="Maksimer"><Square size={12} /></button>
           <button className="close" onClick={w.close} aria-label="Lukk"><X size={15} /></button>

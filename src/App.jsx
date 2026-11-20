@@ -20,6 +20,7 @@ import NotifsModal from './components/NotifsModal.jsx';
 import MonthModal, { monthStats } from './components/MonthModal.jsx';
 import { api, errText } from './api.js';
 import { startChatSocket, stopChatSocket } from './chatSocket.js';
+import MiniView from './components/MiniView.jsx';
 
 const BACK_LABELS = { home: 'Hjem', servers: 'Alle servere', saved: 'Lagrede', recent: 'Nylig spilt', settings: 'Innstillinger', status: 'FiveM-status', compare: 'Sammenligning' };
 
@@ -31,6 +32,10 @@ export default function App() {
   const favRef = useRef([]);
   favRef.current = favorites;
   const connectRef = useRef(null);
+  const [mini, setMini] = useState(false);
+  useEffect(() => {
+    api.win.mini?.(mini).catch?.(() => {});
+  }, [mini]);
   const [activity, setActivity] = useState({ recent: [], playtime: {}, totalMs: 0, active: null });
   const [watch, setWatch] = useState({});
   const [loading, setLoading] = useState(true);
@@ -147,6 +152,12 @@ export default function App() {
         if (!cur?.autoUpdateCheck) return;
         api.app.checkUpdate().then((u) => {
           if (!u?.newer) return;
+          // Last ned i bakgrunnen med en gang (installeres når launcheren ligger ved klokka)
+          if (cur.autoInstallUpdates && u.canInstall) {
+            setUpdate(u);
+            downloadUpdateRef.current?.(u, true);
+            return;
+          }
           setUpdate((old) => {
             if (old?.latest !== u.latest) notify(`Versjon ${u.latest} er tilgjengelig – se Innstillinger`);
             return u;
@@ -210,6 +221,9 @@ export default function App() {
         const fav = favRef.current[0];
         if (fav) connectRef.current?.(fav);
         else notify('Du har ingen lagrede servere ennå');
+      } else if (ctrl && !e.shiftKey && k === 'm') {
+        e.preventDefault();
+        setMini((v) => !v);
       } else if (ctrl && !e.shiftKey && k === 'n') {
         e.preventDefault();
         setModal('notifs');
@@ -425,6 +439,7 @@ export default function App() {
   };
   const SERVER_TABS = [['servers', 'Alle servere', counts.servers], ['saved', 'Lagrede', counts.saved], ['recent', 'Nylig spilt', counts.recent]];
 
+  if (mini) return <MiniView servers={servers} favorites={favorites} recent={activity.recent} totalPlayers={totalPlayers} onConnect={connect} onExit={() => setMini(false)} />;
   return (
     <div className={`app${settings?.compact ? ' compact' : ''}`}>
       <div className="frame">
@@ -460,6 +475,7 @@ export default function App() {
           onSearch={openSearch}
           onLogin={login}
           authBusy={authBusy}
+          onMini={() => setMini(true)}
         />
         <main className="main" ref={mainRef} key={iconKey}>
           <Announcements items={announcements} banned={banned} />

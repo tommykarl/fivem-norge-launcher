@@ -8,6 +8,7 @@ export const SHORTCUTS = [
   ['Enter', 'Åpne valgt server'],
   ['Ctrl Enter', 'Koble til valgt server'],
   ['Ctrl Shift F', 'Koble til favoritten øverst'],
+  ['Ctrl M', 'Minimodus: lite vindu øverst med lagrede servere'],
   ['Ctrl N', 'Åpne varslene'],
   ['F5', 'Oppdater serverlisten'],
   ['Ctrl 1–6', 'Hjem, Servere, Lagrede, Nylig spilt, Status, Venner'],
